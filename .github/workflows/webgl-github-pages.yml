@@ -27,20 +27,6 @@ jobs:
         with:
           lfs: true
 
-      # Локальный пакет Unity MCP не существует на runner
-      - name: Prepare Packages for CI
-        run: |
-          python3 -c "
-          import json
-          path = 'Packages/manifest.json'
-          with open(path, encoding='utf-8') as f:
-              m = json.load(f)
-          m.get('dependencies', {}).pop('com.local.unitymcp', None)
-          with open(path, 'w', encoding='utf-8') as f:
-              json.dump(m, f, indent=2)
-              f.write('\n')
-          "
-
       - name: Cache Unity Library
         uses: actions/cache@v4
         with:
@@ -61,9 +47,8 @@ jobs:
           targetPlatform: WebGL
           buildsPath: build
           buildName: WebGL
-
-      - name: Prepare GitHub Pages root
-        run: touch build/WebGL/.nojekyll
+          versioning: None
+          allowDirtyBuild: true
 
       - name: Upload WebGL artifact
         uses: actions/upload-artifact@v4
@@ -85,6 +70,9 @@ jobs:
         with:
           name: WebGL
           path: build/WebGL
+
+      - name: Prepare GitHub Pages root
+        run: touch build/WebGL/.nojekyll
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
