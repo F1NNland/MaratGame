@@ -1,4 +1,4 @@
-# Сборка Unity WebGL и публикация на GitHub Pages.
+# Сборка Unity WebGL → папка docs/ на ветке main (GitHub Pages: main /docs).
 # Инструкция: docs/WEB_DEPLOY.md
 
 name: WebGL → GitHub Pages
@@ -9,18 +9,15 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: pages
+  group: webgl-pages-${{ github.ref }}
   cancel-in-progress: true
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
 
 jobs:
   build:
     name: Build WebGL
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,30 +52,34 @@ jobs:
         with:
           name: WebGL
           path: build/WebGL
-          retention-days: 7
+          retention-days: 3
 
   deploy:
     name: Deploy to GitHub Pages
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download WebGL build
         uses: actions/download-artifact@v4
         with:
           name: WebGL
           path: build/WebGL
 
-      - name: Prepare GitHub Pages root
+      - name: Prepare site root
         run: touch build/WebGL/.nojekyll
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      # Билд в docs/ на main — в Pages выбираешь branch main, folder /docs
+      - name: Publish WebGL into docs/
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: build/WebGL
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: main
+          publish_dir: ./build/WebGL
+          destination_dir: docs
+          keep_files: true
+          commit_message: "Deploy WebGL build to docs/ for GitHub Pages"
