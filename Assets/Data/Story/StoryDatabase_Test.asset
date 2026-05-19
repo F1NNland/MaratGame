@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 863593a0dca9f1846aec92fa85e9cddb, type: 3}
+  m_Name: StoryDatabase_Test
+  m_EditorClassIdentifier: Assembly-CSharp::MaratGame.Data.StoryDatabase
+  startNodeId: hall_morning
+  nodes:
+  - {fileID: 11400000, guid: a1c8e4f29b3d4e5f8a7b6c5d4e3f2a11, type: 2}
+  - {fileID: 11400000, guid: c3e0f6b41d5e6f7a0b9c8d7e6f5a4c33, type: 2}
+  - {fileID: 11400000, guid: 99e473c767a333f48a2c5b5063519652, type: 2}
+  - {fileID: 11400000, guid: 73c4a3e496ee4a9409eb76909c547a97, type: 2}
+  - {fileID: 11400000, guid: 002a53ec667bf4546b4430df834a66de, type: 2}
+  - {fileID: 11400000, guid: 1691cc44667cffb4fa08438dc8e8cc5c, type: 2}
+  - {fileID: 11400000, guid: c3e3e41edbf3fd54c87b2db6c00b6734, type: 2}
+  - {fileID: 11400000, guid: 9ffae5aab6e06ab42a1fd677b23421a0, type: 2}

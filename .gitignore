@@ -77,6 +77,10 @@ mono_crash.*
 *.unitypackage.meta
 *.app
 
+# WebGL output (deploy via CI or gh-pages, not main branch)
+/build/
+/WebGL/
+
 # Crashlytics generated file
 crashlytics-build.properties
 
