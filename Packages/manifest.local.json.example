@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "com.local.unitymcp": "file:C:/unitymcp/unity-package"
+  }
+}
