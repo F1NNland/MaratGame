@@ -48,6 +48,8 @@ namespace MaratGame.Presentation
 
             ResolvePortraitImageReference();
             EnsureTextFrameChrome();
+            if (_portraitFrameRect != null)
+                PortraitSlotChrome.Apply(_portraitFrameRect);
             StripTestPhotoFromPortraitFrame();
         }
 
@@ -165,9 +167,7 @@ namespace MaratGame.Presentation
             if (_portraitFrameRect == null)
                 return;
 
-            var procedural = _portraitFrameRect.GetComponent<ProceduralImage>();
-            if (procedural != null)
-                procedural.color = UiStyle.PortraitSlotBackground;
+            PortraitSlotChrome.Apply(_portraitFrameRect);
         }
 
         void RefreshSpeakerState()
@@ -205,15 +205,15 @@ namespace MaratGame.Presentation
             if (portraitImage == null)
                 return;
 
-            LayoutPortraitImageInFrame();
-
             var showPhoto = showColumn && _currentPortrait != null;
             if (showPhoto)
             {
                 portraitImage.sprite = _currentPortrait;
-                portraitImage.preserveAspect = true;
                 portraitImage.color = Color.white;
             }
+
+            if (_portraitFrameRect != null)
+                PortraitSlotChrome.LayoutSlot(_portraitFrameRect, showPhoto ? portraitImage : null);
 
             portraitImage.gameObject.SetActive(showPhoto);
         }
@@ -260,7 +260,7 @@ namespace MaratGame.Presentation
             textFrame.anchoredPosition = Vector2.zero;
             textFrame.sizeDelta = Vector2.zero;
             textFrame.offsetMin = showPortraitColumn
-                ? new Vector2(UiLayout.SizeDialoguePortrait.x, 0f)
+                ? new Vector2(UiLayout.PortraitSlotReservedWidth, 0f)
                 : Vector2.zero;
             textFrame.offsetMax = Vector2.zero;
         }
@@ -321,23 +321,6 @@ namespace MaratGame.Presentation
                 StoryUiMode.System => UiStyle.PanelBackgroundSystem,
                 _ => UiStyle.PanelBackground
             };
-
-        void LayoutPortraitImageInFrame()
-        {
-            if (portraitImage == null)
-                return;
-
-            var rect = portraitImage.rectTransform;
-            var pad = UiLayout.DialoguePortraitPadding;
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = Vector2.zero;
-            rect.sizeDelta = Vector2.zero;
-            rect.offsetMin = new Vector2(pad, pad);
-            rect.offsetMax = new Vector2(-pad, -pad);
-            portraitImage.preserveAspect = true;
-        }
 
         void StripTestPhotoFromPortraitFrame()
         {

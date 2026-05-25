@@ -1,6 +1,17 @@
-# Временные фото — `Assets/Фото Марат/`
+# Визуальные ассеты
 
-Референсы для прототипа UI и сценария. **Не финальный арт** — имена файлов Telegram; при импорте в игру лучше переименовать по `locationId` / `characterId`.
+## Иллюстрации VN (игра использует их)
+
+| Тип | Папка | Файлы |
+|-----|-------|-------|
+| Фоны локаций | `Assets/Art/Generated/Locations/` | `hall_bg`, `canteen_bg`, `planerka_bg`, `toilet_bg`, `krrb_bg`, `cabinet_bg`, `elevator_bg`, `evening_bg` (.png) |
+| Портреты | `Assets/Art/Generated/Characters/` | `marat_portrait`, `alevtina_portrait`, `kozlikhin_portrait`, `nozdrikov_portrait` (.png) |
+
+Пути в коде: `LocationPhotoPaths`, `CharacterPhotoPaths`. Полуреалистичный digital-paint, единая палитра; портреты — bust, фон прозрачный или под слот `#1A2638`.
+
+## Референсы (Telegram) — `Assets/Фото Марат/`
+
+Исходные фото для прототипа; **в рантайме не подключаются**, если есть Generated. Имена файлов Telegram.
 
 ## Локации
 
@@ -40,4 +51,8 @@
 | Персонажи | 4 jpg |
 | **Всего** | **19** |
 
-Путь в проекте: `Assets/Фото Марат/` (уже с `.meta`, Unity импортирует автоматически).
+Путь в проекте: `Assets/Фото Марат/` (архив референсов).
+
+### Пока без отдельного арта
+
+`corridor`, `uk`, `archive`, `coffee` — при необходимости повтор ближайшей локации или новая генерация.

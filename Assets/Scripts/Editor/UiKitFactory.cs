@@ -112,6 +112,14 @@ namespace MaratGame.Editor
             return image;
         }
 
+        public static void ApplyPortraitSlotChrome(GameObject portraitFrame)
+        {
+            if (portraitFrame == null)
+                return;
+
+            PortraitSlotChrome.Apply(portraitFrame.GetComponent<RectTransform>());
+        }
+
         public static MPImage AddMessageBubbleGraphic(GameObject host, Color color, float cornerRadius)
         {
             var image = AddRoundedButtonGraphic(host, color, cornerRadius);

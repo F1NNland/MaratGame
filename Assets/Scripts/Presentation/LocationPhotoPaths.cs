@@ -1,13 +1,16 @@
 namespace MaratGame.Presentation
 {
-    /// <summary>Пути к временным фото локаций (см. docs/ASSETS.md).</summary>
+    /// <summary>Фоны локаций (иллюстрации VN). См. docs/ASSETS.md.</summary>
     public static class LocationPhotoPaths
     {
-        public const string Hall = "Assets/Фото Марат/Холл/photo_2026-05-15_15-09-51.jpg";
-        public const string Canteen = "Assets/Фото Марат/Столовая/photo_2026-05-15_15-09-40.jpg";
-        public const string Planerka = "Assets/Фото Марат/Планерка/photo_2026-05-15_15-10-12.jpg";
-        public const string Toilet = "Assets/Фото Марат/Туалет/photo_2026-05-15_15-10-22.jpg";
-        public const string Krrb = "Assets/Фото Марат/КРРБ/photo_2026-05-15_15-11-42.jpg";
+        public const string Hall = "Assets/Art/Generated/Locations/hall_bg.png";
+        public const string Canteen = "Assets/Art/Generated/Locations/canteen_bg.png";
+        public const string Planerka = "Assets/Art/Generated/Locations/planerka_bg.png";
+        public const string Toilet = "Assets/Art/Generated/Locations/toilet_bg.png";
+        public const string Krrb = "Assets/Art/Generated/Locations/krrb_bg.png";
+        public const string Cabinet = "Assets/Art/Generated/Locations/cabinet_bg.png";
+        public const string Elevator = "Assets/Art/Generated/Locations/elevator_bg.png";
+        public const string Evening = "Assets/Art/Generated/Locations/evening_bg.png";
 
         public static string ResolveAssetPath(string locationId) =>
             locationId switch
@@ -17,7 +20,9 @@ namespace MaratGame.Presentation
                 "planerka" or "meeting_room" => Planerka,
                 "toilet" => Toilet,
                 "krrb" => Krrb,
-                "cabinet" or "elevator" or "evening" => Hall,
+                "cabinet" => Cabinet,
+                "elevator" => Elevator,
+                "evening" => Evening,
                 _ => null
             };
     }

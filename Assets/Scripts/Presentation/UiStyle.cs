@@ -12,10 +12,16 @@ namespace MaratGame.Presentation
         public const float PhoneMessageBubbleRadius = 14f;
 
         public static readonly Color PanelBackground = new(0.08f, 0.09f, 0.12f, 0.96f);
-        /// <summary>Слот портрета слева в окне диалога (Figma).</summary>
-        public static readonly Color PortraitSlotBackground = new(0.1f, 0.15f, 0.22f, 0.96f);
-        public static readonly Color PanelBackgroundMonologue = new(0.08f, 0.09f, 0.12f, 0.96f);
+        public const float PortraitSlotCornerRadius = 12f;
+        public const float PortraitSlotBorderWidth = 3f;
+
         public static readonly Color TextSpeaker = new(0.45f, 0.78f, 0.95f, 1f);
+
+        /// <summary>Светлая подложка слота портрета (диалог).</summary>
+        public static readonly Color PortraitSlotBackground = new(0.94f, 0.96f, 0.99f, 1f);
+        /// <summary>Обводка слота портрета — акцент игры (как имя спикера).</summary>
+        public static readonly Color PortraitSlotBorder = TextSpeaker;
+        public static readonly Color PanelBackgroundMonologue = new(0.08f, 0.09f, 0.12f, 0.96f);
         public static readonly Color PanelBackgroundSystem = new(0.07f, 0.11f, 0.15f, 0.88f);
         public static readonly Color ScreenBackground = new(0.05f, 0.06f, 0.08f, 1f);
         public static readonly Color AccentButton = new(0.18f, 0.38f, 0.62f, 1f);

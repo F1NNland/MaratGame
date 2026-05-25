@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace MaratGame.Editor
 {
-    /// <summary>Привязка фонов локаций и портретов из Assets/Фото Марат/ на сцену Game.</summary>
+    /// <summary>Привязка фонов и портретов из Assets/Art/Generated/ на сцену Game.</summary>
     static class GameUiPhotoBindingsSetup
     {
         const string GameScenePath = "Assets/Scenes/Game.unity";
@@ -42,6 +42,9 @@ namespace MaratGame.Editor
             var toilet = LocationPhotoSprites.Load(LocationPhotoPaths.Toilet) ?? hall;
             var planerka = LocationPhotoSprites.Load(LocationPhotoPaths.Planerka) ?? hall;
             var krrb = LocationPhotoSprites.Load(LocationPhotoPaths.Krrb) ?? hall;
+            var cabinet = LocationPhotoSprites.Load(LocationPhotoPaths.Cabinet) ?? hall;
+            var elevator = LocationPhotoSprites.Load(LocationPhotoPaths.Elevator) ?? hall;
+            var evening = LocationPhotoSprites.Load(LocationPhotoPaths.Evening) ?? hall;
 
             BindLocation(controller, report, "hall", hall, LocationPhotoPaths.Hall);
             BindLocation(controller, report, "canteen", canteen, LocationPhotoPaths.Canteen);
@@ -49,10 +52,9 @@ namespace MaratGame.Editor
             BindLocation(controller, report, "planerka", planerka, LocationPhotoPaths.Planerka);
             BindLocation(controller, report, "meeting_room", planerka, LocationPhotoPaths.Planerka);
             BindLocation(controller, report, "krrb", krrb, LocationPhotoPaths.Krrb);
-
-            BindLocation(controller, report, "cabinet", hall, LocationPhotoPaths.Hall, stub: true);
-            BindLocation(controller, report, "elevator", hall, LocationPhotoPaths.Hall, stub: true);
-            BindLocation(controller, report, "evening", hall, LocationPhotoPaths.Hall, stub: true);
+            BindLocation(controller, report, "cabinet", cabinet, LocationPhotoPaths.Cabinet);
+            BindLocation(controller, report, "elevator", elevator, LocationPhotoPaths.Elevator);
+            BindLocation(controller, report, "evening", evening, LocationPhotoPaths.Evening);
         }
 
         static void RefreshCharacterPortraits(GameUIController controller, StringBuilder report)

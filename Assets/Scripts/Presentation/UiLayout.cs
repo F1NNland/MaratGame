@@ -170,10 +170,32 @@ namespace MaratGame.Presentation
 
 
 
-        public static readonly Vector2 SizeDialoguePortrait = new(336f, 303f);
+        public static readonly Vector2 SizeDialoguePortrait = new(248f, 286f);
         public static readonly Vector2 SizeDialogueTextPanel = new(667f, 327f);
-        public const float DialoguePortraitWidth = 336f;
-        public const float DialoguePortraitPadding = 14f;
+        public const float DialoguePortraitWidth = 248f;
+        public const float DialoguePortraitPadding = 10f;
+        /// <summary>Макс. ширина фото в слоте; рамка = контент + <see cref="DialoguePortraitPadding"/>.</summary>
+        public const float PortraitSlotContentMaxWidth = 228f;
+
+        public static float PortraitSlotReservedWidth =>
+            PortraitSlotContentMaxWidth + DialoguePortraitPadding * 2f;
+
+        public static Vector2 ComputePortraitContentSize(Sprite portraitSprite)
+        {
+            if (portraitSprite == null || portraitSprite.rect.width <= 0f)
+                return new Vector2(PortraitSlotContentMaxWidth, PortraitSlotContentMaxWidth * 1.12f);
+
+            var spriteRect = portraitSprite.rect;
+            var aspect = spriteRect.height / spriteRect.width;
+            return new Vector2(PortraitSlotContentMaxWidth, PortraitSlotContentMaxWidth * aspect);
+        }
+
+        public static Vector2 ComputePortraitSlotSize(Sprite portraitSprite)
+        {
+            var content = ComputePortraitContentSize(portraitSprite);
+            var pad = DialoguePortraitPadding;
+            return new Vector2(content.x + pad * 2f, content.y + pad * 2f);
+        }
 
         public const float DialogueAreaMinX = 0.04f;
 

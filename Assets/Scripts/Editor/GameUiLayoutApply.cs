@@ -403,19 +403,12 @@ namespace MaratGame.Editor
             rect.sizeDelta = size;
         }
 
-        public static void LayoutPortraitImageRect(RectTransform rect)
+        public static void LayoutPortraitImageRect(RectTransform rect, Sprite portraitSprite = null)
         {
             if (rect == null)
                 return;
 
-            var pad = UiLayout.DialoguePortraitPadding;
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = Vector2.zero;
-            rect.sizeDelta = Vector2.zero;
-            rect.offsetMin = new Vector2(pad, pad);
-            rect.offsetMax = new Vector2(-pad, -pad);
+            PortraitSlotChrome.LayoutPortraitImage(rect, UiLayout.ComputePortraitContentSize(portraitSprite));
 
             var image = rect.GetComponent<Image>();
             if (image != null)
@@ -423,6 +416,14 @@ namespace MaratGame.Editor
                 image.preserveAspect = true;
                 image.raycastTarget = false;
             }
+        }
+
+        public static void LayoutPortraitFrameRect(RectTransform frame, Sprite portraitSprite = null)
+        {
+            if (frame == null)
+                return;
+
+            PortraitSlotChrome.LayoutFrame(frame, UiLayout.ComputePortraitSlotSize(portraitSprite));
         }
 
         static void SetRectOffsets(string path, Vector2 offsetMin, Vector2 offsetMax)
@@ -609,7 +610,7 @@ namespace MaratGame.Editor
 
             var textLeft = panel.Find("TextFrame") != null
                 ? 16f
-                : UiLayout.SizeDialoguePortrait.x + 16f;
+                : UiLayout.PortraitSlotReservedWidth + 16f;
             LayoutDialogueTextBlock(speakerPath, textLeft, 40f, true);
             LayoutDialogueTextBlock(bodyPath, textLeft, 12f, false);
 
@@ -1135,7 +1136,7 @@ namespace MaratGame.Editor
             var textBack = EnsureChild(dialogue, "TextFrame");
             textBack.transform.SetSiblingIndex(1);
             var textRect = textBack.GetComponent<RectTransform>();
-            var portraitW = UiLayout.SizeDialoguePortrait.x;
+            var portraitW = UiLayout.PortraitSlotReservedWidth;
             textRect.anchorMin = new Vector2(0f, 0f);
             textRect.anchorMax = new Vector2(1f, 1f);
             textRect.pivot = new Vector2(0f, 0.5f);
@@ -1168,24 +1169,23 @@ namespace MaratGame.Editor
             var portraitBack = EnsureChild(dialogue, "PortraitFrame");
             portraitBack.transform.SetAsFirstSibling();
             var portraitRect = portraitBack.GetComponent<RectTransform>();
-            portraitRect.anchorMin = new Vector2(0f, 0f);
-            portraitRect.anchorMax = new Vector2(0f, 1f);
-            portraitRect.pivot = new Vector2(0f, 0.5f);
-            portraitRect.sizeDelta = new Vector2(UiLayout.SizeDialoguePortrait.x, 0f);
-            portraitRect.anchoredPosition = Vector2.zero;
+            GameUiLayoutApply.LayoutPortraitFrameRect(portraitRect);
 
             var legacyPhoto = portraitBack.GetComponent<Image>();
             if (legacyPhoto != null)
                 DestroyEditorObject(legacyPhoto);
 
-            var procedural = portraitBack.GetComponent<ProceduralImage>();
-            if (procedural == null)
-                UiKitFactory.AddRoundedPanel(portraitBack, UiStyle.PortraitSlotBackground, 12f);
-            else
-                procedural.color = UiStyle.PortraitSlotBackground;
+            UiKitFactory.ApplyPortraitSlotChrome(portraitBack);
 
-            if (portraitBack.GetComponent<ProceduralImage>() != null)
-                portraitBack.GetComponent<ProceduralImage>().raycastTarget = false;
+            var portraitImage = portraitBack.transform.Find("PortraitImage");
+            if (portraitImage != null)
+            {
+                portraitImage.SetAsLastSibling();
+                var image = portraitImage.GetComponent<Image>();
+                GameUiLayoutApply.LayoutPortraitImageRect(
+                    portraitImage.GetComponent<RectTransform>(),
+                    image != null ? image.sprite : null);
+            }
         }
 
         static void ApplyNavigationSprites(Sprite left, Sprite right)

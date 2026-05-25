@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace MaratGame.Presentation
 {
     /// <summary>
-    /// Холл-hub: ← Столовая · ↑ Кабинет · → Лифты (MVP шаг 09).
+    /// Холл-hub: три направления без текстовых подписей на кнопках (MVP шаг 09).
     /// </summary>
     public sealed class NavigationBar : MonoBehaviour
     {
@@ -141,12 +141,18 @@ namespace MaratGame.Presentation
             TextMeshProUGUI forwardLabel,
             TextMeshProUGUI rightLabel)
         {
-            if (leftLabel != null)
-                leftLabel.text = "←\nСтоловая";
-            if (forwardLabel != null)
-                forwardLabel.text = "↑\nКабинет";
-            if (rightLabel != null)
-                rightLabel.text = "→\nЛифты";
+            HideNavLabel(leftLabel);
+            HideNavLabel(forwardLabel);
+            HideNavLabel(rightLabel);
+        }
+
+        static void HideNavLabel(TextMeshProUGUI label)
+        {
+            if (label == null)
+                return;
+
+            label.text = string.Empty;
+            label.gameObject.SetActive(false);
         }
 
         void ApplyNavDirectionGlyphs()
