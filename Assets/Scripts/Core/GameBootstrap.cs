@@ -1,4 +1,5 @@
 using MaratGame.Narrative;
+using MaratGame.Presentation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -17,6 +18,7 @@ namespace MaratGame.Core
 
         void Awake()
         {
+            UiInputBootstrap.EnsureUiInput();
             GameState.Instance.Reset();
         }
 
@@ -39,6 +41,13 @@ namespace MaratGame.Core
         {
             GameState.Instance.Reset();
             SceneManager.LoadScene(SceneNames.MainMenu);
+        }
+
+        /// <summary>Сброс прогресса и быстрый рестарт с игровой сцены.</summary>
+        public static void RestartGame()
+        {
+            GameState.Instance.Reset();
+            SceneManager.LoadScene(SceneNames.Game);
         }
     }
 }

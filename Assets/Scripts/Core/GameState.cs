@@ -15,6 +15,7 @@ namespace MaratGame.Core
         public int DecisionsCount { get; private set; }
         public string CurrentTime { get; private set; } = GameDefaults.StartTime;
         public string CurrentLocationId { get; private set; } = GameDefaults.StartLocationId;
+        public DayBlock CurrentDayBlock { get; private set; } = GameDefaults.StartDayBlock;
 
         GameState()
         {
@@ -23,11 +24,12 @@ namespace MaratGame.Core
 
         public void Reset()
         {
-            Stats.Reset(GameDefaults.StartRespect, GameDefaults.StartCalm);
+            Stats.Reset(GameDefaults.StartRespect, GameDefaults.StartCalm, GameDefaults.StartChaos);
             Flags.Clear();
             DecisionsCount = 0;
             CurrentTime = GameDefaults.StartTime;
             CurrentLocationId = GameDefaults.StartLocationId;
+            CurrentDayBlock = GameDefaults.StartDayBlock;
         }
 
         public void RecordDecision() => DecisionsCount++;
@@ -46,6 +48,14 @@ namespace MaratGame.Core
                 throw new ArgumentException("Location id cannot be empty.", nameof(locationId));
 
             CurrentLocationId = locationId;
+        }
+
+        public void SetDayBlock(DayBlock dayBlock)
+        {
+            if (dayBlock == DayBlock.Unspecified)
+                throw new ArgumentException("Day block cannot be Unspecified.", nameof(dayBlock));
+
+            CurrentDayBlock = dayBlock;
         }
 
         public void ApplyStatChange(StatChange change) => Stats.ApplyChange(change);

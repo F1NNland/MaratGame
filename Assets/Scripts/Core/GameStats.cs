@@ -9,16 +9,20 @@ namespace MaratGame.Core
 
         public int Respect { get; private set; }
         public int Calm { get; private set; }
+        public int Chaos { get; private set; }
 
-        public void Reset(int respect, int calm)
+        public void Reset(int respect, int calm, int chaos)
         {
             Respect = Clamp(respect);
             Calm = Clamp(calm);
+            Chaos = Clamp(chaos);
         }
 
         public void AddRespect(int delta) => Respect = Clamp(Respect + delta);
 
         public void AddCalm(int delta) => Calm = Clamp(Calm + delta);
+
+        public void AddChaos(int delta) => Chaos = Clamp(Chaos + delta);
 
         public void ApplyChange(StatChange change)
         {
@@ -29,6 +33,9 @@ namespace MaratGame.Core
                     break;
                 case StatType.Calm:
                     AddCalm(change.Delta);
+                    break;
+                case StatType.Chaos:
+                    AddChaos(change.Delta);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(change.Stat), change.Stat, null);

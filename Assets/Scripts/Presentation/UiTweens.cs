@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using DG.Tweening;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,6 +18,15 @@ namespace MaratGame.Presentation
 
         const float ChoiceStagger = 0.06f;
         const float SlideDistance = 40f;
+
+        public const float PhoneMessageStagger = 1f;
+
+        /// <summary>Скорость побуквенного текста диалога (символов в секунду).</summary>
+        public const float DialogueTypewriterCharsPerSecond = 110f;
+
+        public const float DialogueTypewriterMinDuration = 0.18f;
+
+        public const float DialogueTypewriterMaxDuration = 0.95f;
 
         public static void Kill(Component target)
         {
@@ -91,6 +102,64 @@ namespace MaratGame.Presentation
             return seq;
         }
 
+        /// <summary>Побуквенное появление текста диалога (TMP <c>maxVisibleCharacters</c>).</summary>
+        public static Tween TypewriterDialogue(TextMeshProUGUI text, float charsPerSecond = DialogueTypewriterCharsPerSecond)
+        {
+            if (text == null)
+                return null;
+
+            Kill(text);
+            text.ForceMeshUpdate(true, true);
+
+            var total = text.textInfo.characterCount;
+            if (total <= 0)
+            {
+                text.maxVisibleCharacters = int.MaxValue;
+                return null;
+            }
+
+            text.maxVisibleCharacters = 0;
+            var duration = Mathf.Clamp(total / charsPerSecond, DialogueTypewriterMinDuration, DialogueTypewriterMaxDuration);
+
+            return DOTween.To(
+                    () => text.maxVisibleCharacters,
+                    value => text.maxVisibleCharacters = value,
+                    total,
+                    duration)
+                .SetEase(Ease.Linear)
+                .OnComplete(() => text.maxVisibleCharacters = int.MaxValue)
+                .SetLink(text.gameObject);
+        }
+
+        /// <summary>Пузыри входящих в телефоне: fade + scale с паузой <see cref="PhoneMessageStagger"/> между строками.</summary>
+        public static void StaggerPhoneMessages(IReadOnlyList<Transform> rows, float stagger = PhoneMessageStagger, float duration = Normal)
+        {
+            if (rows == null)
+                return;
+
+            for (var i = 0; i < rows.Count; i++)
+            {
+                var row = rows[i];
+                if (row == null)
+                    continue;
+
+                Kill(row);
+
+                var cg = row.GetComponent<CanvasGroup>();
+                if (cg == null)
+                    cg = row.gameObject.AddComponent<CanvasGroup>();
+
+                cg.alpha = 0f;
+                cg.blocksRaycasts = false;
+                cg.interactable = false;
+                row.localScale = Vector3.one * 0.9f;
+
+                var delay = i * stagger;
+                row.DOScale(1f, duration).SetDelay(delay).SetEase(Ease.OutBack).SetLink(row.gameObject);
+                cg.DOFade(1f, duration).SetDelay(delay).SetEase(Ease.OutQuad).SetLink(row.gameObject);
+            }
+        }
+
         public static void StaggerChoices(RectTransform[] buttons, float duration = Fast, float initialDelay = 0f)
         {
             if (buttons == null)
@@ -103,15 +172,17 @@ namespace MaratGame.Presentation
                     continue;
 
                 Kill(button);
-                button.localScale = Vector3.one * 0.85f;
+                button.localScale = Vector3.one * 0.92f;
                 var cg = button.GetComponent<CanvasGroup>();
                 if (cg != null)
-                    cg.alpha = 0f;
+                {
+                    cg.alpha = 1f;
+                    cg.interactable = true;
+                    cg.blocksRaycasts = true;
+                }
 
                 var delay = initialDelay + i * ChoiceStagger;
                 button.DOScale(1f, duration).SetDelay(delay).SetEase(Ease.OutBack).SetLink(button.gameObject);
-                if (cg != null)
-                    cg.DOFade(1f, duration).SetDelay(delay).SetLink(button.gameObject);
             }
         }
 
@@ -160,18 +231,17 @@ namespace MaratGame.Presentation
             var seq = DOTween.Sequence();
 
             if (backgroundGroup != null)
-            {
-                seq.Append(Fade(backgroundGroup, 0.65f, duration * 0.4f, Ease.InQuad));
-                seq.AppendCallback(() => applyContent?.Invoke());
-                seq.Append(Fade(backgroundGroup, 1f, duration * 0.6f, Ease.OutQuad));
-            }
-            else
-            {
-                seq.AppendCallback(() => applyContent?.Invoke());
-            }
+                backgroundGroup.alpha = 1f;
+
+            seq.AppendCallback(() => applyContent?.Invoke());
 
             if (dialoguePanel != null && dialogueGroup != null)
                 seq.Append(RevealDialogue(dialoguePanel, dialogueGroup, duration));
+
+            if (dialoguePanel != null)
+                seq.SetLink(dialoguePanel.gameObject);
+            else if (dialogueGroup != null)
+                seq.SetLink(dialogueGroup.gameObject);
 
             return seq;
         }
@@ -198,7 +268,15 @@ namespace MaratGame.Presentation
             var seq = DOTween.Sequence();
             seq.Join(from.DOFade(0f, duration).SetEase(Ease.InQuad));
             seq.Join(to.DOFade(1f, duration).SetEase(Ease.OutQuad));
-            seq.OnComplete(() => from.gameObject.SetActive(false));
+            seq.OnComplete(() =>
+            {
+                var visible = new Color(toColor.r, toColor.g, toColor.b, 1f);
+                to.color = visible;
+                from.gameObject.SetActive(false);
+                var fromColor = from.color;
+                fromColor.a = 1f;
+                from.color = fromColor;
+            });
             return seq;
         }
     }

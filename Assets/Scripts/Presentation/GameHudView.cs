@@ -5,7 +5,7 @@ using UnityEngine;
 namespace MaratGame.Presentation
 {
     /// <summary>
-    /// HUD: время, уважение, спокойствие, глава.
+    /// HUD по макету Figma: время, заголовок главы (отдельно), три стата с % справа.
     /// </summary>
     public sealed class GameHudView : MonoBehaviour
     {
@@ -13,13 +13,21 @@ namespace MaratGame.Presentation
         [SerializeField] TextMeshProUGUI timeText;
         [SerializeField] TextMeshProUGUI respectText;
         [SerializeField] TextMeshProUGUI calmText;
+        [SerializeField] TextMeshProUGUI chaosText;
         [SerializeField] TextMeshProUGUI chapterText;
         [SerializeField] TextMeshProUGUI periodBadgeText;
 
         int _displayedRespect = GameDefaults.StartRespect;
         int _displayedCalm = GameDefaults.StartCalm;
+        int _displayedChaos;
 
         public CanvasGroup CanvasGroup => canvasGroup;
+
+        void Awake()
+        {
+            if (canvasGroup != null)
+                canvasGroup.blocksRaycasts = false;
+        }
 
         public void PlayIntroFade()
         {
@@ -37,9 +45,11 @@ namespace MaratGame.Presentation
 
             _displayedRespect = state.Stats.Respect;
             _displayedCalm = state.Stats.Calm;
+            _displayedChaos = state.Stats.Chaos;
             ApplyTime(state.CurrentTime);
             ApplyRespectInstant(_displayedRespect);
             ApplyCalmInstant(_displayedCalm);
+            ApplyChaosInstant(_displayedChaos);
         }
 
         public void SetChapter(string chapterLabel)
@@ -59,12 +69,9 @@ namespace MaratGame.Presentation
                 periodBadgeText.text = badgeText;
         }
 
-        public void SetTime(string timeDisplay)
-        {
-            ApplyTime(timeDisplay);
-        }
+        public void SetTime(string timeDisplay) => ApplyTime(timeDisplay);
 
-        public void AnimateStats(int respect, int calm)
+        public void AnimateStats(int respect, int calm, int chaos = 0)
         {
             if (respectText != null && respect != _displayedRespect)
             {
@@ -95,6 +102,24 @@ namespace MaratGame.Presentation
                 _displayedCalm = calm;
                 ApplyCalmInstant(calm);
             }
+
+            if (chaosText == null)
+                return;
+
+            if (chaos != _displayedChaos)
+            {
+                UiTweens.Kill(chaosText);
+                UiTweens.Counter(_displayedChaos, chaos, UiTweens.Normal, v =>
+                {
+                    _displayedChaos = v;
+                    ApplyChaosInstant(v);
+                });
+            }
+            else
+            {
+                _displayedChaos = chaos;
+                ApplyChaosInstant(chaos);
+            }
         }
 
         void ApplyTime(string timeDisplay)
@@ -103,17 +128,17 @@ namespace MaratGame.Presentation
                 timeText.text = timeDisplay ?? string.Empty;
         }
 
-        void ApplyRespectInstant(int value)
+        static void ApplyPercent(TextMeshProUGUI text, int value)
         {
-            if (respectText != null)
-                respectText.text = $"Уважение {value}%";
+            if (text != null)
+                text.text = $"{value}%";
         }
 
-        void ApplyCalmInstant(int value)
-        {
-            if (calmText != null)
-                calmText.text = $"Спокойствие {value}%";
-        }
+        void ApplyRespectInstant(int value) => ApplyPercent(respectText, value);
+
+        void ApplyCalmInstant(int value) => ApplyPercent(calmText, value);
+
+        void ApplyChaosInstant(int value) => ApplyPercent(chaosText, value);
 
         void OnDestroy()
         {
@@ -123,6 +148,8 @@ namespace MaratGame.Presentation
                 UiTweens.Kill(respectText);
             if (calmText != null)
                 UiTweens.Kill(calmText);
+            if (chaosText != null)
+                UiTweens.Kill(chaosText);
         }
     }
 }

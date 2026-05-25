@@ -29,6 +29,12 @@ namespace MaratGame.Presentation
             if (storyRunner == null)
                 storyRunner = FindFirstObjectByType<StoryRunner>();
 
+            ApplyDirectionLabels(
+                FindNavLabel(leftButton),
+                FindNavLabel(forwardButton),
+                FindNavLabel(rightButton));
+            ApplyNavDirectionGlyphs();
+
             if (leftButton != null)
                 leftButton.onClick.AddListener(() => NavigateTo(CanteenEntryNodeId));
             if (forwardButton != null)
@@ -63,8 +69,17 @@ namespace MaratGame.Presentation
             var showHub = node != null && node.id == HubNodeId;
             SetBarVisible(showHub);
 
-            if (showHub && barRoot != null)
+            if (!showHub)
+                return;
+
+            RefreshHubNavButtons(GameState.Instance?.Flags);
+            if (barRoot != null)
                 UiTweens.PunchScale(barRoot.transform);
+        }
+
+        static TextMeshProUGUI FindNavLabel(Button button)
+        {
+            return button != null ? button.transform.Find("Label")?.GetComponent<TextMeshProUGUI>() : null;
         }
 
         void NavigateTo(string nodeId)
@@ -72,8 +87,32 @@ namespace MaratGame.Presentation
             if (string.IsNullOrWhiteSpace(nodeId))
                 return;
 
-            GameState.Instance.RecordDecision();
+            var flags = GameState.Instance?.Flags;
+            if (flags != null && !MorningBranchProgress.CanEnterMorningArea(nodeId, flags))
+                return;
+
             storyRunner?.LoadNode(nodeId);
+        }
+
+        void RefreshHubNavButtons(GameFlags flags)
+        {
+            SetNavAvailable(leftButton, MorningBranchProgress.CanEnterMorningArea(CanteenEntryNodeId, flags));
+            SetNavAvailable(forwardButton, MorningBranchProgress.CanEnterMorningArea(CabinetEntryNodeId, flags));
+            SetNavAvailable(rightButton, MorningBranchProgress.CanEnterMorningArea(ElevatorEntryNodeId, flags));
+        }
+
+        static void SetNavAvailable(Button button, bool available)
+        {
+            if (button == null)
+                return;
+
+            button.interactable = available;
+
+            var cg = button.GetComponent<CanvasGroup>();
+            if (cg == null)
+                cg = button.gameObject.AddComponent<CanvasGroup>();
+
+            cg.alpha = available ? 1f : 0.4f;
         }
 
         void SetBarVisible(bool visible)
@@ -108,6 +147,38 @@ namespace MaratGame.Presentation
                 forwardLabel.text = "↑\nКабинет";
             if (rightLabel != null)
                 rightLabel.text = "→\nЛифты";
+        }
+
+        void ApplyNavDirectionGlyphs()
+        {
+            var leftSprite = leftButton != null ? leftButton.GetComponent<Image>()?.sprite : null;
+            var rightSprite = rightButton != null ? rightButton.GetComponent<Image>()?.sprite : null;
+            var hasDedicatedRight = rightSprite != null && rightSprite != leftSprite;
+
+            ApplyNavGlyph(leftButton, leftSprite, 0f, mirrorX: false);
+            ApplyNavGlyph(forwardButton, leftSprite, -90f, mirrorX: false);
+            ApplyNavGlyph(
+                rightButton,
+                hasDedicatedRight ? rightSprite : leftSprite,
+                0f,
+                mirrorX: !hasDedicatedRight);
+        }
+
+        static void ApplyNavGlyph(Button button, Sprite forwardSprite, float zRotation, bool mirrorX)
+        {
+            if (button == null)
+                return;
+
+            var image = button.GetComponent<Image>();
+            if (image == null)
+                return;
+
+            if (forwardSprite != null)
+                image.sprite = forwardSprite;
+
+            var rect = image.rectTransform;
+            rect.localEulerAngles = new Vector3(0f, 0f, zRotation);
+            rect.localScale = mirrorX ? new Vector3(-1f, 1f, 1f) : Vector3.one;
         }
     }
 }

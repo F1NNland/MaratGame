@@ -4,18 +4,156 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UI.ProceduralImage;
 
 namespace MaratGame.Editor
 {
     /// <summary>
-    /// MVP шаг 08: PhoneButton + PhoneOverlay на сцене Game.
+    /// MVP шаг 08: PhoneButton + PhoneOverlay (Phone_big + пузыри MPImage).
     /// </summary>
     static class GameUiPhoneSetup
     {
         const string GameScenePath = "Assets/Scenes/Game.unity";
+        const string PhoneFrameSpritePath = "Assets/Art/UI/Phone_big.png";
 
         [MenuItem("MaratGame/UI/Setup Step 08 (Phone UI)")]
         public static void SetupStep08PhoneUi() => EnsurePhoneUiOnGameScene();
+
+        [MenuItem("MaratGame/UI/Upgrade Phone UI (Phone_big + bubbles)")]
+        public static void UpgradePhoneUiKitOnGameScene()
+        {
+            var scene = EditorSceneManager.OpenScene(GameScenePath, OpenSceneMode.Single);
+            var canvas = Object.FindFirstObjectByType<Canvas>();
+            if (canvas != null)
+                UiKitFactory.EnsureCanvasSupportsProceduralImage(canvas);
+
+            ApplyPhoneKitToHierarchy();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            Debug.Log("[MaratGame] Phone UI upgraded: Phone_big frame + white MPImage message bubbles.");
+        }
+
+        [MenuItem("MaratGame/UI/Fix Phone Layout (Game scene)")]
+        public static void FixPhoneLayoutOnGameScene()
+        {
+            var scene = EditorSceneManager.OpenScene(GameScenePath, OpenSceneMode.Single);
+            var canvas = Object.FindFirstObjectByType<Canvas>();
+            if (canvas != null)
+                UiKitFactory.EnsureCanvasSupportsProceduralImage(canvas);
+            ApplyPhoneKitToHierarchy();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            Debug.Log("[MaratGame] Phone UI layout + kit (Phone_big, bubbles) applied on Game scene.");
+        }
+
+        public static void ApplyPhoneLayoutToHierarchy()
+        {
+            var panel = GameObject.Find("Canvas/PhoneUI/PhoneOverlay/Panel")?.GetComponent<RectTransform>();
+            var title = GameObject.Find("Canvas/PhoneUI/PhoneOverlay/Panel/Title")?.GetComponent<RectTransform>();
+            var list = GameObject.Find("Canvas/PhoneUI/PhoneOverlay/Panel/MessageList")?.GetComponent<RectTransform>();
+            var close = GameObject.Find("Canvas/PhoneUI/PhoneOverlay/Panel/CloseButton")?.GetComponent<RectTransform>();
+            var frame = GameObject.Find("Canvas/PhoneUI/PhoneOverlay/Panel/PanelSprite")?.GetComponent<RectTransform>();
+            var button = GameObject.Find("Canvas/PhoneUI/PhoneButton")?.GetComponent<RectTransform>();
+
+            if (panel != null)
+                SetAnchors(panel, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, UiLayout.SizePhonePanel);
+
+            if (frame != null)
+                StretchFull(frame.gameObject);
+
+            if (title != null)
+                SetPhoneTitleLayout(title);
+
+            if (list != null)
+            {
+                SetStretchInsets(list, UiLayout.PhoneMessageListInsetMin, UiLayout.PhoneMessageListInsetMax);
+                var layout = list.GetComponent<VerticalLayoutGroup>();
+                if (layout != null)
+                {
+                    layout.padding = new RectOffset(4, 4, 4, 4);
+                    layout.spacing = 8f;
+                    layout.childAlignment = TextAnchor.UpperLeft;
+                    layout.childControlWidth = true;
+                    layout.childControlHeight = false;
+                    layout.childForceExpandWidth = true;
+                    layout.childForceExpandHeight = false;
+                }
+            }
+
+            if (close != null)
+                SetAnchors(close, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, UiLayout.PhoneCloseBottomOffset), UiLayout.SizePhoneClose);
+
+            if (button != null)
+            {
+                button.anchorMin = new Vector2(1f, 0f);
+                button.anchorMax = new Vector2(1f, 0f);
+                button.pivot = new Vector2(1f, 0f);
+                button.anchoredPosition = new Vector2(-72f, 56f);
+                button.sizeDelta = UiLayout.SizePhoneButton;
+            }
+        }
+
+        public static void ApplyPhoneKitToHierarchy()
+        {
+            ApplyPhoneLayoutToHierarchy();
+
+            var panel = GameObject.Find("Canvas/PhoneUI/PhoneOverlay/Panel");
+            if (panel == null)
+            {
+                Debug.LogWarning("[MaratGame] Phone Panel not found. Run Setup Step 08 first.");
+                return;
+            }
+
+            EnsurePhoneFrameSprite(panel);
+            StripLegacyPanelBackground(panel);
+
+            var list = panel.transform.Find("MessageList");
+            if (list != null)
+            {
+                var template = BuildMessageItemTemplate(list);
+                WireMessageTemplateToPhoneUi(template);
+                EnsureMessageListMask(list);
+                UnityEditor.GameObjectUtility.RemoveMonoBehavioursWithMissingScript(list.gameObject);
+            }
+
+            var title = panel.transform.Find("Title")?.GetComponent<TextMeshProUGUI>();
+            if (title != null)
+            {
+                title.text = "Входящие";
+                title.color = UiStyle.PhoneInboxTitle;
+                title.fontStyle = FontStyles.Bold;
+                title.raycastTarget = false;
+            }
+
+            FixCloseButtonRaycasts();
+        }
+
+        static void EnsureMessageListMask(Transform list)
+        {
+            if (list.GetComponent<RectMask2D>() == null)
+                list.gameObject.AddComponent<RectMask2D>();
+        }
+
+        static void FixCloseButtonRaycasts()
+        {
+            var close = GameObject.Find("Canvas/PhoneUI/PhoneOverlay/Panel/CloseButton");
+            if (close == null)
+                return;
+
+            close.transform.SetAsLastSibling();
+
+            foreach (var label in close.GetComponentsInChildren<TextMeshProUGUI>(true))
+                label.raycastTarget = false;
+
+            var button = close.GetComponent<Button>();
+            if (button != null)
+            {
+                button.interactable = true;
+                var graphic = button.targetGraphic;
+                if (graphic != null)
+                    graphic.raycastTarget = true;
+            }
+        }
 
         public static void EnsurePhoneUiOnGameScene()
         {
@@ -32,9 +170,10 @@ namespace MaratGame.Editor
             var existing = Object.FindFirstObjectByType<PhoneUI>();
             if (existing != null)
             {
-                Debug.Log("[MaratGame] PhoneUI already on scene — skipped rebuild.");
+                ApplyPhoneKitToHierarchy();
                 EditorSceneManager.MarkSceneDirty(scene);
                 EditorSceneManager.SaveScene(scene);
+                Debug.Log("[MaratGame] PhoneUI already on scene — kit upgraded in place.");
                 return;
             }
 
@@ -79,7 +218,11 @@ namespace MaratGame.Editor
         {
             var root = CreateUiObject("PhoneButton", parent);
             var rect = root.GetComponent<RectTransform>();
-            SetAnchors(rect, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-24f, 24f), new Vector2(72f, 72f));
+            rect.anchorMin = new Vector2(1f, 0f);
+            rect.anchorMax = new Vector2(1f, 0f);
+            rect.pivot = new Vector2(1f, 0f);
+            rect.anchoredPosition = new Vector2(-72f, 56f);
+            rect.sizeDelta = UiLayout.SizePhoneButton;
 
             var graphic = UiKitFactory.AddRoundedButtonGraphic(root, UiStyle.AccentButton, UiStyle.ButtonCornerRadius);
             var button = root.AddComponent<Button>();
@@ -88,7 +231,7 @@ namespace MaratGame.Editor
             var icon = TmpUiFactory.CreateText(
                 "Icon",
                 root.transform,
-                32f,
+                UiLayout.FontPhoneIcon,
                 TextAlignmentOptions.Center,
                 UiStyle.TextLight);
             StretchFull(icon.gameObject);
@@ -96,7 +239,7 @@ namespace MaratGame.Editor
 
             var badge = CreateUiObject("Badge", root.transform);
             var badgeRect = badge.GetComponent<RectTransform>();
-            SetAnchors(badgeRect, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(8f, 8f), new Vector2(28f, 28f));
+            SetAnchors(badgeRect, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(8f, 8f), UiLayout.SizePhoneBadge);
             UiKitFactory.AddRoundedPanel(badge, new Color(0.85f, 0.22f, 0.18f, 1f), 14f);
 
             var badgeText = TmpUiFactory.CreateText(
@@ -129,24 +272,33 @@ namespace MaratGame.Editor
 
             var panel = CreateUiObject("Panel", root.transform);
             var panelRect = panel.GetComponent<RectTransform>();
-            SetAnchors(panelRect, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(520f, 480f));
-            UiKitFactory.AddRoundedPanel(panel, UiStyle.PanelBackground, UiStyle.PanelCornerRadius);
+            SetAnchors(panelRect, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, UiLayout.SizePhonePanel);
+
+            var frameGo = CreateUiObject("PanelSprite", panel.transform);
+            StretchFull(frameGo);
+            var frameImage = frameGo.AddComponent<Image>();
+            frameImage.preserveAspect = true;
+            frameImage.raycastTarget = false;
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(PhoneFrameSpritePath);
+            if (sprite != null)
+                frameImage.sprite = sprite;
 
             var title = TmpUiFactory.CreateText(
                 "Title",
                 panel.transform,
-                24f,
+                UiLayout.FontPhoneTitle,
                 TextAlignmentOptions.TopLeft,
-                UiStyle.TextLight);
-            SetAnchors(title.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(20f, -16f), new Vector2(-40f, 36f));
+                UiStyle.PhoneInboxTitle);
+            SetPhoneTitleLayout(title.rectTransform);
             title.fontStyle = FontStyles.Bold;
             title.text = "Входящие";
 
             var listRoot = CreateUiObject("MessageList", panel.transform);
             var listRect = listRoot.GetComponent<RectTransform>();
-            SetAnchors(listRect, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(20f, 72f), new Vector2(-40f, -56f));
+            SetStretchInsets(listRect, UiLayout.PhoneMessageListInsetMin, UiLayout.PhoneMessageListInsetMax);
 
             var layout = listRoot.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(4, 4, 4, 4);
             layout.spacing = 8f;
             layout.childAlignment = TextAnchor.UpperLeft;
             layout.childControlWidth = true;
@@ -154,18 +306,11 @@ namespace MaratGame.Editor
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = false;
 
-            var template = TmpUiFactory.CreateText(
-                "MessageItemTemplate",
-                listRoot.transform,
-                18f,
-                TextAlignmentOptions.TopLeft,
-                UiStyle.TextLight);
-            template.gameObject.SetActive(false);
-            template.text = "…";
+            var template = BuildMessageItemTemplate(listRoot.transform);
 
             var closeGo = CreateUiObject("CloseButton", panel.transform);
             var closeRect = closeGo.GetComponent<RectTransform>();
-            SetAnchors(closeRect, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 16f), new Vector2(200f, 44f));
+            SetAnchors(closeRect, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, UiLayout.PhoneCloseBottomOffset), UiLayout.SizePhoneClose);
             var closeGraphic = UiKitFactory.AddRoundedButtonGraphic(closeGo, UiStyle.AccentButton, UiStyle.ButtonCornerRadius);
             var closeButton = closeGo.AddComponent<Button>();
             closeButton.targetGraphic = closeGraphic;
@@ -173,13 +318,123 @@ namespace MaratGame.Editor
             var closeLabel = TmpUiFactory.CreateText(
                 "Label",
                 closeGo.transform,
-                20f,
+                UiLayout.FontPhoneClose,
                 TextAlignmentOptions.Center,
                 UiStyle.TextLight);
             StretchFull(closeLabel.gameObject);
+            closeLabel.raycastTarget = false;
             closeLabel.text = "Закрыть";
 
             return (group, listRect, template, closeButton);
+        }
+
+        static TextMeshProUGUI BuildMessageItemTemplate(Transform listParent)
+        {
+            var existing = listParent.Find("MessageItemTemplate");
+            if (existing != null)
+                Object.DestroyImmediate(existing.gameObject);
+
+            var root = CreateUiObject("MessageItemTemplate", listParent);
+            var rootRect = root.GetComponent<RectTransform>();
+            rootRect.anchorMin = new Vector2(0f, 1f);
+            rootRect.anchorMax = new Vector2(1f, 1f);
+            rootRect.pivot = new Vector2(0.5f, 1f);
+            rootRect.sizeDelta = Vector2.zero;
+
+            var rowGroup = root.AddComponent<CanvasGroup>();
+            rowGroup.alpha = 0f;
+            rowGroup.blocksRaycasts = false;
+            rowGroup.interactable = false;
+
+            var layout = root.AddComponent<LayoutElement>();
+            layout.minHeight = 32f;
+            layout.flexibleWidth = 1f;
+
+            root.AddComponent<PhoneMessageBubbleRow>();
+
+            var bubble = CreateUiObject("Bubble", root.transform);
+            StretchFull(bubble);
+            var bubbleGraphic = UiKitFactory.AddRoundedButtonGraphic(bubble, UiStyle.PhoneMessageBubble, UiStyle.PhoneMessageBubbleRadius);
+            bubbleGraphic.raycastTarget = false;
+
+            var text = TmpUiFactory.CreateText(
+                "Text",
+                root.transform,
+                UiLayout.FontPhoneMessage,
+                TextAlignmentOptions.TopLeft,
+                UiStyle.PhoneMessageText);
+            var textRect = text.rectTransform;
+            textRect.anchorMin = new Vector2(0f, 1f);
+            textRect.anchorMax = new Vector2(0f, 1f);
+            textRect.pivot = new Vector2(0f, 1f);
+            textRect.anchoredPosition = new Vector2(UiLayout.PhoneMessagePadH, -UiLayout.PhoneMessagePadV);
+            textRect.sizeDelta = new Vector2(UiLayout.PhoneMessageRowWidth - UiLayout.PhoneMessagePadH * 2f, 0f);
+            text.margin = Vector4.zero;
+            text.raycastTarget = false;
+            text.text = "…";
+            root.SetActive(false);
+
+            return text;
+        }
+
+        static void WireMessageTemplateToPhoneUi(TextMeshProUGUI template)
+        {
+            var phoneUi = Object.FindFirstObjectByType<PhoneUI>();
+            if (phoneUi == null || template == null)
+                return;
+
+            var so = new SerializedObject(phoneUi);
+            so.FindProperty("messageItemPrefab").objectReferenceValue = template;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static void EnsurePhoneFrameSprite(GameObject panel)
+        {
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(PhoneFrameSpritePath);
+            if (sprite == null)
+            {
+                Debug.LogWarning($"[MaratGame] Sprite not found: {PhoneFrameSpritePath}. Reimport Phone_big.png.");
+                return;
+            }
+
+            var frame = panel.transform.Find("PanelSprite");
+            if (frame == null)
+            {
+                frame = CreateUiObject("PanelSprite", panel.transform).transform;
+                StretchFull(frame.gameObject);
+                frame.SetAsFirstSibling();
+            }
+
+            var image = frame.GetComponent<Image>() ?? frame.gameObject.AddComponent<Image>();
+            image.sprite = sprite;
+            image.preserveAspect = true;
+            image.color = Color.white;
+            image.raycastTarget = false;
+            StretchFull(frame.gameObject);
+        }
+
+        static void StripLegacyPanelBackground(GameObject panel)
+        {
+            foreach (var proc in panel.GetComponents<ProceduralImage>())
+                Object.DestroyImmediate(proc);
+
+            foreach (var mod in panel.GetComponents<FreeModifier>())
+                Object.DestroyImmediate(mod);
+
+            var legacy = panel.GetComponent<Image>();
+            if (legacy != null && panel.transform.Find("PanelSprite") != null)
+                Object.DestroyImmediate(legacy);
+        }
+
+        static void SetPhoneTitleLayout(RectTransform rect)
+        {
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(0.5f, 1f);
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = Vector2.zero;
+            rect.offsetMin = new Vector2(UiLayout.PhoneSideInset + 8f, -UiLayout.PhoneTitleBandHeight);
+            rect.offsetMax = new Vector2(-UiLayout.PhoneSideInset, -56f);
         }
 
         static GameObject CreateUiObject(string name, Transform parent)
@@ -194,6 +449,7 @@ namespace MaratGame.Editor
             var rect = go.GetComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
+            rect.pivot = new Vector2(0.5f, 0.5f);
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
         }
@@ -206,5 +462,17 @@ namespace MaratGame.Editor
             rect.anchoredPosition = pos;
             rect.sizeDelta = size;
         }
+
+        static void SetStretchInsets(RectTransform rect, Vector2 offsetMin, Vector2 offsetMax)
+        {
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = Vector2.zero;
+            rect.offsetMin = offsetMin;
+            rect.offsetMax = offsetMax;
+        }
     }
 }
+

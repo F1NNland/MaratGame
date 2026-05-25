@@ -13,8 +13,6 @@ namespace MaratGame.Editor
     static class GameUiNavigationSetup
     {
         const string GameScenePath = "Assets/Scenes/Game.unity";
-        const string CanteenPhotoPath = "Assets/Фото Марат/Столовая/photo_2026-05-15_15-09-40.jpg";
-
         [MenuItem("MaratGame/UI/Setup Step 09 (Navigation Bar)")]
         public static void SetupStep09NavigationUi() => EnsureNavigationUiOnGameScene();
 
@@ -33,7 +31,7 @@ namespace MaratGame.Editor
             if (Object.FindFirstObjectByType<NavigationBar>() == null)
                 BuildNavigationBar(canvas.transform);
 
-            EnsureLocationBackgrounds();
+            GameUiPhotoBindingsSetup.RefreshAllPhotoBindings();
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             Debug.Log("[MaratGame] Step 09 NavigationBar on Game scene.");
@@ -46,7 +44,7 @@ namespace MaratGame.Editor
 
             var barRoot = CreateUiObject("Bar", root.transform);
             var barRect = barRoot.GetComponent<RectTransform>();
-            SetAnchors(barRect, new Vector2(0.08f, 0.02f), new Vector2(0.92f, 0.14f), Vector2.zero, Vector2.zero);
+            SetAnchors(barRect, new Vector2(0.06f, 0.02f), new Vector2(0.94f, 0.16f), Vector2.zero, Vector2.zero);
             var barGroup = barRoot.AddComponent<CanvasGroup>();
 
             var layout = barRoot.AddComponent<HorizontalLayoutGroup>();
@@ -55,7 +53,7 @@ namespace MaratGame.Editor
             layout.childControlWidth = true;
             layout.childControlHeight = true;
             layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = true;
+            layout.childForceExpandHeight = false;
 
             var left = BuildNavButton(barRoot.transform, "NavLeft");
             var forward = BuildNavButton(barRoot.transform, "NavForward");
@@ -84,7 +82,8 @@ namespace MaratGame.Editor
         {
             var go = CreateUiObject(name, parent);
             var rect = go.GetComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(160f, 72f);
+            rect.sizeDelta = UiLayout.SizeNavButton;
+            UiKitFactory.AddLayoutElement(go, UiLayout.SizeNavButton);
 
             var graphic = UiKitFactory.AddRoundedButtonGraphic(go, UiStyle.AccentButton, UiStyle.ButtonCornerRadius);
             var button = go.AddComponent<Button>();
@@ -93,7 +92,7 @@ namespace MaratGame.Editor
             var label = TmpUiFactory.CreateText(
                 "Label",
                 go.transform,
-                17f,
+                UiLayout.FontNav,
                 TextAlignmentOptions.Center,
                 UiStyle.TextLight);
             StretchFull(label.gameObject);
@@ -104,8 +103,11 @@ namespace MaratGame.Editor
 
         public static void EnsureLocationBackgrounds()
         {
-            var hallSprite = GameUiShellSetup.LoadHallSprite();
-            var canteenSprite = LoadSpriteFromPhoto(CanteenPhotoPath) ?? hallSprite;
+            var hallSprite = LocationPhotoSprites.Load(LocationPhotoPaths.Hall) ?? GameUiShellSetup.LoadHallSprite();
+            var canteenSprite = LocationPhotoSprites.Load(LocationPhotoPaths.Canteen) ?? hallSprite;
+            var planerkaSprite = LocationPhotoSprites.Load(LocationPhotoPaths.Planerka) ?? hallSprite;
+            var toiletSprite = LocationPhotoSprites.Load(LocationPhotoPaths.Toilet) ?? hallSprite;
+            var krrbSprite = LocationPhotoSprites.Load(LocationPhotoPaths.Krrb) ?? hallSprite;
 
             var controller = Object.FindFirstObjectByType<GameUIController>();
             if (controller == null)
@@ -118,6 +120,11 @@ namespace MaratGame.Editor
             SetLocationBackground(controller, "canteen", canteenSprite);
             SetLocationBackground(controller, "cabinet", hallSprite);
             SetLocationBackground(controller, "elevator", hallSprite);
+            SetLocationBackground(controller, "toilet", toiletSprite);
+            SetLocationBackground(controller, "planerka", planerkaSprite);
+            SetLocationBackground(controller, "meeting_room", planerkaSprite);
+            SetLocationBackground(controller, "krrb", krrbSprite);
+            SetLocationBackground(controller, "evening", hallSprite);
         }
 
         static void SetLocationBackground(GameUIController controller, string locationId, Sprite sprite)
@@ -147,20 +154,6 @@ namespace MaratGame.Editor
 
             entries.GetArrayElementAtIndex(index).FindPropertyRelative("sprite").objectReferenceValue = sprite;
             so.ApplyModifiedPropertiesWithoutUndo();
-        }
-
-        static Sprite LoadSpriteFromPhoto(string path)
-        {
-            foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
-            {
-                if (asset is Sprite sprite)
-                    return sprite;
-            }
-
-            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-            return tex != null
-                ? Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f)
-                : null;
         }
 
         static GameObject CreateUiObject(string name, Transform parent)

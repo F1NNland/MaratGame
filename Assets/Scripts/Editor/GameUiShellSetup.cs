@@ -11,7 +11,7 @@ using UnityEngine.UI;
 namespace MaratGame.Editor
 {
     /// <summary>
-    /// Шаг 04 MVP: Canvas HUD, диалог, выборы на сцене Game.
+    /// Шаг 04 MVP: Canvas HUD, диалог, выборы на сцене Game. UI ref: 2001×981.
     /// </summary>
     static class GameUiShellSetup
     {
@@ -33,14 +33,16 @@ namespace MaratGame.Editor
             }
 
             UiKitFactory.EnsureCanvasSupportsProceduralImage(canvas);
+            canvas.sortingOrder = 10;
             ClearUiChildren(canvas.gameObject);
 
             var hallSprite = LoadHallSprite();
             var choicePrefab = GetOrCreateChoicePrefab();
 
+            var bgCanvas = UiKitFactory.EnsureBackgroundCanvas(0);
             var hud = BuildHud(canvas.transform);
             var locationHeader = BuildLocationHeader(canvas.transform);
-            var (bgGroup, imageA, imageB) = BuildBackground(canvas.transform, hallSprite);
+            var (bgGroup, imageA, imageB) = BuildBackground(bgCanvas.transform, hallSprite);
             var dialogue = BuildDialogue(canvas.transform);
             var choices = BuildChoices(canvas.transform, choicePrefab);
             var controller = canvas.gameObject.GetComponent<GameUIController>();
@@ -150,8 +152,8 @@ namespace MaratGame.Editor
             }
 
             var hudTransform = hud.transform;
-            var periodBadge = CreateTmpText("PeriodBadge", hudTransform, 15, TextAnchor.UpperCenter, UiStyle.TextMuted);
-            SetAnchors(periodBadge.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -36f), new Vector2(160f, 24f));
+            var periodBadge = CreateTmpText("PeriodBadge", hudTransform, (int)UiLayout.FontHudPeriod, TextAnchor.UpperCenter, UiStyle.TextMuted);
+            SetAnchors(periodBadge.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -48f), UiLayout.SizeHudPeriod);
             periodBadge.text = "🎂 Утро";
             so.FindProperty("periodBadgeText").objectReferenceValue = periodBadge;
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -164,23 +166,23 @@ namespace MaratGame.Editor
             StretchFull(root);
             var group = root.AddComponent<CanvasGroup>();
 
-            var time = CreateTmpText("TimeText", root.transform, 20, TextAnchor.UpperLeft, UiStyle.TextLight);
-            SetAnchors(time.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -16f), new Vector2(120f, 32f));
+            var time = CreateTmpText("TimeText", root.transform, (int)UiLayout.FontHudTime, TextAnchor.UpperLeft, UiStyle.TextLight);
+            SetAnchors(time.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(24f, -20f), UiLayout.SizeHudTime);
             time.text = GameDefaults.StartTime;
 
-            var respect = CreateTmpText("RespectText", root.transform, 18, TextAnchor.UpperRight, UiStyle.TextMuted);
-            SetAnchors(respect.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-16f, -16f), new Vector2(220f, 28f));
+            var respect = CreateTmpText("RespectText", root.transform, (int)UiLayout.FontHudStat, TextAnchor.UpperRight, UiStyle.TextMuted);
+            SetAnchors(respect.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-24f, -20f), UiLayout.SizeHudStat);
             respect.text = $"Уважение {GameDefaults.StartRespect}%";
 
-            var calm = CreateTmpText("CalmText", root.transform, 18, TextAnchor.UpperRight, UiStyle.TextMuted);
-            SetAnchors(calm.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-16f, -48f), new Vector2(220f, 28f));
+            var calm = CreateTmpText("CalmText", root.transform, (int)UiLayout.FontHudStat, TextAnchor.UpperRight, UiStyle.TextMuted);
+            SetAnchors(calm.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-24f, -60f), UiLayout.SizeHudStat);
             calm.text = $"Спокойствие {GameDefaults.StartCalm}%";
 
-            var chapter = CreateTmpText("ChapterText", root.transform, 16, TextAnchor.UpperCenter, UiStyle.TextMuted);
-            SetAnchors(chapter.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -12f), new Vector2(480f, 24f));
+            var chapter = CreateTmpText("ChapterText", root.transform, (int)UiLayout.FontHudChapter, TextAnchor.UpperCenter, UiStyle.TextMuted);
+            SetAnchors(chapter.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -16f), UiLayout.SizeHudChapter);
 
-            var periodBadge = CreateTmpText("PeriodBadge", root.transform, 15, TextAnchor.UpperCenter, UiStyle.TextMuted);
-            SetAnchors(periodBadge.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -36f), new Vector2(160f, 24f));
+            var periodBadge = CreateTmpText("PeriodBadge", root.transform, (int)UiLayout.FontHudPeriod, TextAnchor.UpperCenter, UiStyle.TextMuted);
+            SetAnchors(periodBadge.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -48f), UiLayout.SizeHudPeriod);
             periodBadge.text = "🎂 Утро";
 
             var view = root.AddComponent<GameHudView>();
@@ -199,10 +201,10 @@ namespace MaratGame.Editor
         {
             var go = CreateUiObject("LocationHeader", parent);
             var rect = go.GetComponent<RectTransform>();
-            SetAnchors(rect, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -72f), new Vector2(640f, 40f));
+            SetAnchors(rect, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -88f), UiLayout.SizeLocationHeader);
             var text = go.AddComponent<TextMeshProUGUI>();
             text.font = TmpUiFactory.DefaultFont;
-            text.fontSize = 26;
+            text.fontSize = UiLayout.FontLocationHeader;
             text.fontStyle = FontStyles.Bold;
             text.alignment = TextAlignmentOptions.Center;
             text.color = UiStyle.TextLight;
@@ -230,7 +232,7 @@ namespace MaratGame.Editor
             StretchFull(go);
             var image = go.AddComponent<Image>();
             image.sprite = sprite;
-            image.color = UiStyle.ScreenBackground;
+            image.color = UiStyle.PhotoBackground;
             image.preserveAspect = true;
             image.type = Image.Type.Simple;
             return image;
@@ -240,25 +242,25 @@ namespace MaratGame.Editor
         {
             var root = CreateUiObject("DialoguePanel", parent);
             var panelRect = root.GetComponent<RectTransform>();
-            SetAnchors(panelRect, new Vector2(0.05f, 0.12f), new Vector2(0.95f, 0.38f), Vector2.zero, Vector2.zero);
+            SetAnchors(panelRect, new Vector2(0.04f, 0.1f), new Vector2(0.96f, 0.4f), Vector2.zero, Vector2.zero);
             UiKitFactory.AddRoundedPanel(root, UiStyle.PanelBackground, UiStyle.PanelCornerRadius);
             var group = root.AddComponent<CanvasGroup>();
 
             var portraitGo = CreateUiObject("PortraitImage", root.transform);
             var portraitRect = portraitGo.GetComponent<RectTransform>();
-            SetAnchors(portraitRect, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(12f, 0f), new Vector2(96f, 0f));
+            SetAnchors(portraitRect, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(16f, 0f), new Vector2(UiLayout.DialoguePortraitWidth, 0f));
             portraitRect.pivot = new Vector2(0f, 0.5f);
             var portraitImage = portraitGo.AddComponent<Image>();
             portraitImage.color = Color.white;
             portraitImage.preserveAspect = true;
             portraitGo.SetActive(false);
 
-            var speaker = CreateTmpText("SpeakerText", root.transform, 22, TextAnchor.UpperLeft, UiStyle.TextLight);
-            SetAnchors(speaker.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(120f, -12f), new Vector2(-40f, 36f));
+            var speaker = CreateTmpText("SpeakerText", root.transform, (int)UiLayout.FontDialogueSpeaker, TextAnchor.UpperLeft, UiStyle.TextLight);
+            SetAnchors(speaker.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(140f, -14f), new Vector2(-32f, 44f));
             speaker.fontStyle = FontStyles.Bold;
 
-            var body = CreateTmpText("BodyText", root.transform, 20, TextAnchor.UpperLeft, UiStyle.TextLight);
-            SetAnchors(body.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(120f, 16f), new Vector2(-40f, -52f));
+            var body = CreateTmpText("BodyText", root.transform, (int)UiLayout.FontDialogueBody, TextAnchor.UpperLeft, UiStyle.TextLight);
+            SetAnchors(body.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(140f, 20f), new Vector2(-32f, -56f));
 
             var view = root.AddComponent<DialogueView>();
             var so = new SerializedObject(view);
@@ -275,7 +277,7 @@ namespace MaratGame.Editor
         {
             var root = CreateUiObject("ChoicesContainer", parent);
             var rect = root.GetComponent<RectTransform>();
-            SetAnchors(rect, new Vector2(0.2f, 0.02f), new Vector2(0.8f, 0.12f), Vector2.zero, Vector2.zero);
+            SetAnchors(rect, new Vector2(0.15f, 0.02f), new Vector2(0.85f, 0.15f), Vector2.zero, Vector2.zero);
 
             var layout = root.AddComponent<VerticalLayoutGroup>();
             layout.spacing = 10f;
@@ -306,7 +308,8 @@ namespace MaratGame.Editor
 
             var go = new GameObject("ChoiceButton");
             var rect = go.AddComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(400f, 44f);
+            rect.sizeDelta = UiLayout.SizeChoiceButton;
+            UiKitFactory.AddLayoutElement(go, UiLayout.SizeChoiceButton);
 
             var cg = go.AddComponent<CanvasGroup>();
             cg.alpha = 1f;
@@ -322,7 +325,7 @@ namespace MaratGame.Editor
             StretchFull(labelRect.gameObject);
             var label = labelGo.AddComponent<TextMeshProUGUI>();
             label.font = TmpUiFactory.DefaultFont;
-            label.fontSize = 20;
+            label.fontSize = UiLayout.FontChoice;
             label.alignment = TextAlignmentOptions.Center;
             label.color = UiStyle.TextLight;
             label.text = "Выбор";

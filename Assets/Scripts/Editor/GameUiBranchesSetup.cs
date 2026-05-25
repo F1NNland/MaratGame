@@ -13,8 +13,6 @@ namespace MaratGame.Editor
     static class GameUiBranchesSetup
     {
         const string GameScenePath = "Assets/Scenes/Game.unity";
-        const string AlevtinaPhotoPath = "Assets/Фото Марат/Люди/Екатерина.jpg";
-
         public static void EnsureBranchPortraitsOnGameScene()
         {
             var scene = EditorSceneManager.OpenScene(GameScenePath, OpenSceneMode.Single);
@@ -22,17 +20,11 @@ namespace MaratGame.Editor
             if (dialogue != null)
                 EnsurePortraitImageOnDialogue(dialogue);
 
-            var controller = Object.FindFirstObjectByType<GameUIController>();
-            if (controller != null)
-            {
-                var sprite = LoadSpriteFromPhoto(AlevtinaPhotoPath);
-                if (sprite != null)
-                    SetCharacterPortrait(controller, CharacterIds.Alevtina, sprite);
-            }
+            GameUiPhotoBindingsSetup.RefreshAllPhotoBindings();
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
-            Debug.Log("[MaratGame] Step 10: dialogue portrait + alevtina sprite on Game scene.");
+            Debug.Log("[MaratGame] Step 10: dialogue portrait frame + character sprites on Game scene.");
         }
 
         static void EnsurePortraitImageOnDialogue(DialogueView dialogue)
@@ -45,15 +37,21 @@ namespace MaratGame.Editor
             if (panel == null)
                 return;
 
-            var portraitGo = new GameObject("PortraitImage", typeof(RectTransform), typeof(Image));
-            portraitGo.transform.SetParent(panel, false);
+            var portraitParent = panel.Find("PortraitFrame") ?? panel;
+            var portraitGo = portraitParent.Find("PortraitImage")?.gameObject;
+            if (portraitGo == null)
+            {
+                portraitGo = new GameObject("PortraitImage", typeof(RectTransform), typeof(Image));
+                portraitGo.transform.SetParent(portraitParent, false);
+            }
 
             var rect = portraitGo.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0f, 0f);
-            rect.anchorMax = new Vector2(0f, 1f);
-            rect.pivot = new Vector2(0f, 0.5f);
-            rect.anchoredPosition = new Vector2(12f, 0f);
-            rect.sizeDelta = new Vector2(96f, 96f);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = Vector2.zero;
+            rect.offsetMin = new Vector2(14f, 14f);
+            rect.offsetMax = new Vector2(-14f, -14f);
 
             var image = portraitGo.GetComponent<Image>();
             image.color = Color.white;
@@ -76,44 +74,5 @@ namespace MaratGame.Editor
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        static void SetCharacterPortrait(GameUIController controller, string characterId, Sprite sprite)
-        {
-            var so = new SerializedObject(controller);
-            var entries = so.FindProperty("characterPortraits");
-            var index = -1;
-
-            for (var i = 0; i < entries.arraySize; i++)
-            {
-                if (entries.GetArrayElementAtIndex(i).FindPropertyRelative("characterId").stringValue == characterId)
-                {
-                    index = i;
-                    break;
-                }
-            }
-
-            if (index < 0)
-            {
-                index = entries.arraySize;
-                entries.InsertArrayElementAtIndex(index);
-                entries.GetArrayElementAtIndex(index).FindPropertyRelative("characterId").stringValue = characterId;
-            }
-
-            entries.GetArrayElementAtIndex(index).FindPropertyRelative("sprite").objectReferenceValue = sprite;
-            so.ApplyModifiedPropertiesWithoutUndo();
-        }
-
-        static Sprite LoadSpriteFromPhoto(string path)
-        {
-            foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
-            {
-                if (asset is Sprite sprite)
-                    return sprite;
-            }
-
-            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-            return tex != null
-                ? Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f)
-                : null;
-        }
     }
 }

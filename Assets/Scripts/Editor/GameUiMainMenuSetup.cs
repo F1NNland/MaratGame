@@ -108,7 +108,7 @@ namespace MaratGame.Editor
             panelRect.anchorMin = new Vector2(0.5f, 0.58f);
             panelRect.anchorMax = new Vector2(0.5f, 0.78f);
             panelRect.pivot = new Vector2(0.5f, 0.5f);
-            panelRect.sizeDelta = new Vector2(520, 200);
+            panelRect.sizeDelta = UiLayout.SizeMenuPanel;
             panelRect.anchoredPosition = Vector2.zero;
 
             UiKitFactory.AddRoundedPanel(panelGo, UiStyle.PanelBackground, UiStyle.PanelCornerRadius);
@@ -124,7 +124,7 @@ namespace MaratGame.Editor
             titleRect.anchorMin = new Vector2(0.5f, 0.62f);
             titleRect.anchorMax = new Vector2(0.5f, 0.62f);
             titleRect.pivot = new Vector2(0.5f, 0.5f);
-            titleRect.sizeDelta = new Vector2(480, 100);
+            titleRect.sizeDelta = new Vector2(600f, 120f);
             titleRect.anchoredPosition = Vector2.zero;
 
             var title = titleGo.GetComponent<TextMeshProUGUI>();
@@ -132,7 +132,7 @@ namespace MaratGame.Editor
                 title = titleGo.AddComponent<TextMeshProUGUI>();
             title.font = TmpUiFactory.DefaultFont;
             title.text = "Обычный\nрабочий день";
-            title.fontSize = 40;
+            title.fontSize = UiLayout.FontMenuTitle;
             title.fontStyle = FontStyles.Bold;
             title.alignment = TextAlignmentOptions.Center;
             title.color = UiStyle.TextLight;
@@ -149,7 +149,7 @@ namespace MaratGame.Editor
             subtitleRect.anchorMin = new Vector2(0.5f, 0.28f);
             subtitleRect.anchorMax = new Vector2(0.5f, 0.28f);
             subtitleRect.pivot = new Vector2(0.5f, 0.5f);
-            subtitleRect.sizeDelta = new Vector2(480, 36);
+            subtitleRect.sizeDelta = new Vector2(600f, 44f);
             subtitleRect.anchoredPosition = Vector2.zero;
 
             var subtitle = subtitleGo.GetComponent<TextMeshProUGUI>();
@@ -157,7 +157,7 @@ namespace MaratGame.Editor
                 subtitle = subtitleGo.AddComponent<TextMeshProUGUI>();
             subtitle.font = TmpUiFactory.DefaultFont;
             subtitle.text = "Офисная бродилка · Банк";
-            subtitle.fontSize = 20;
+            subtitle.fontSize = UiLayout.FontMenuSubtitle;
             subtitle.alignment = TextAlignmentOptions.Center;
             subtitle.color = UiStyle.TextMuted;
             subtitle.textWrappingMode = TextWrappingModes.Normal;
@@ -189,7 +189,7 @@ namespace MaratGame.Editor
             buttonRect.anchorMin = new Vector2(0.5f, 0.36f);
             buttonRect.anchorMax = new Vector2(0.5f, 0.36f);
             buttonRect.pivot = new Vector2(0.5f, 0.5f);
-            buttonRect.sizeDelta = new Vector2(300, 52);
+            buttonRect.sizeDelta = UiLayout.SizeMenuButton;
             buttonRect.anchoredPosition = Vector2.zero;
 
             var graphic = UiKitFactory.AddRoundedButtonGraphic(buttonGo, UiStyle.AccentButton, UiStyle.ButtonCornerRadius);
@@ -216,7 +216,7 @@ namespace MaratGame.Editor
                 label = labelGo.AddComponent<TextMeshProUGUI>();
             label.font = TmpUiFactory.DefaultFont;
             label.text = "НАЧАТЬ ИГРУ";
-            label.fontSize = 22;
+            label.fontSize = UiLayout.FontMenuButton;
             label.fontStyle = FontStyles.Bold;
             label.alignment = TextAlignmentOptions.Center;
             label.color = UiStyle.TextLight;

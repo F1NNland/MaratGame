@@ -42,6 +42,7 @@ jobs:
         with:
           unityVersion: 6000.3.7f1
           targetPlatform: WebGL
+          buildMethod: MaratGame.Editor.WebGLBuildMenu.BuildForGitHubPages
           buildsPath: build
           buildName: WebGL
           versioning: None

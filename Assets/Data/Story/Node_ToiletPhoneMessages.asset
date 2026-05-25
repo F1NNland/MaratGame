@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0a24d73cc338a044934cec64b5d7e61, type: 3}
+  m_Name: Node_ToiletPhoneMessages
+  m_EditorClassIdentifier: Assembly-CSharp::MaratGame.Data.StoryNodeData
+  id: toilet_phone_messages
+  locationId: toilet
+  timeDisplay: 08:24
+  dayBlock: 2
+  chapterLabel: "\u0413\u041B\u0410\u0412\u0410 2 \xB7 \u0414\u041E \u041F\u041B\u0410\u041D\u0415\u0420\u041A\u0418"
+  bodyText: 
+  speaker: 
+  uiMode: 3
+  isMiniStory: 0
+  miniStoryId: 
+  miniStoryRole: 0
+  miniStoryEntryNodeId: 
+  miniStoryContentNodeIds: []
+  miniStoryExitNodeId: 
+  portraitCharacterId: 
+  requiredFlags: []
+  requiredStats: []
+  mediaSlot: 0
+  mediaPath: 
+  onEnterEffects: []
+  choices:
+  - label: "\u0421\u043F\u0440\u044F\u0442\u0430\u0442\u044C \u0442\u0435\u043B\u0435\u0444\u043E\u043D
+      \u0438 \u0432\u0435\u0440\u043D\u0443\u0442\u044C\u0441\u044F"
+    targetNodeId: chapter2_cabinet_entry
+    statChanges:
+    - stat: 0
+      delta: 1
+    flagsToSet:
+    - toilet_phone_messages_checked
+    requiredFlags: []
+    requiredStats: []
+    unavailableReason: 

@@ -16,8 +16,9 @@ namespace MaratGame.Editor
         [MenuItem("MaratGame/Build/WebGL (GitHub Pages)")]
         public static void BuildForGitHubPages()
         {
-            // Some static servers do not send Content-Encoding for .br files.
-            // Fallback keeps WebGL playable by enabling JS-side decompression.
+            // Static hosting (including GitHub Pages/docs) may not attach Content-Encoding for .br.
+            // Build uncompressed WebGL to avoid server-dependent decode failures.
+            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;
             PlayerSettings.WebGL.decompressionFallback = true;
 
             var scenes = EditorBuildSettings.scenes

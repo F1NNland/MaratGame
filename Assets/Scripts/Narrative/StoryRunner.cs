@@ -7,6 +7,7 @@ namespace MaratGame.Narrative
 {
     /// <summary>
     /// MonoBehaviour-обёртка над <see cref="StoryEngine"/> для сцены и отладки без Canvas.
+    /// Автоплей агента: <see cref="MaratGame.Agent.AgentPlayBridge"/>.
     /// </summary>
     public sealed class StoryRunner : MonoBehaviour
     {
@@ -82,6 +83,9 @@ namespace MaratGame.Narrative
 
         public void SelectChoice(int index) => _engine?.SelectChoice(index);
 
+        public StoryChoiceAvailability[] GetCurrentChoiceAvailability()
+            => _engine?.GetChoiceAvailability() ?? Array.Empty<StoryChoiceAvailability>();
+
         void HandleNodeChanged(StoryNodeData node)
         {
             if (logNodeChanges)
@@ -103,7 +107,7 @@ namespace MaratGame.Narrative
             var state = GameState.Instance;
             Debug.Log(
                 $"[StoryRunner] Node={node.id} loc={state.CurrentLocationId} time={state.CurrentTime} " +
-                $"respect={state.Stats.Respect}% calm={state.Stats.Calm}% decisions={state.DecisionsCount}\n" +
+                $"dayBlock={state.CurrentDayBlock} respect={state.Stats.Respect}% calm={state.Stats.Calm}% chaos={state.Stats.Chaos}% decisions={state.DecisionsCount}\n" +
                 $"  {node.speaker}: {node.bodyText}",
                 this);
         }
@@ -114,7 +118,7 @@ namespace MaratGame.Narrative
                 return;
 
             var node = _engine.CurrentNode;
-            var choices = node.choices;
+            var choices = _engine.GetChoiceAvailability(node);
             if (choices == null || choices.Length == 0)
                 return;
 
@@ -127,11 +131,34 @@ namespace MaratGame.Narrative
             for (var i = 0; i < choices.Length; i++)
             {
                 var choice = choices[i];
-                if (choice != null && GUILayout.Button(choice.label))
-                    SelectChoice(i);
+                if (choice.Choice == null)
+                    continue;
+
+                using (new GuiEnabledScope(choice.IsAvailable))
+                {
+                    var label = choice.Choice.label;
+                    if (!choice.IsAvailable && !string.IsNullOrWhiteSpace(choice.Reason))
+                        label = $"{label} ({choice.Reason})";
+
+                    if (GUILayout.Button(label))
+                        SelectChoice(choice.Index);
+                }
             }
 
             GUILayout.EndArea();
+        }
+
+        readonly struct GuiEnabledScope : IDisposable
+        {
+            readonly bool _previous;
+
+            public GuiEnabledScope(bool enabled)
+            {
+                _previous = GUI.enabled;
+                GUI.enabled = enabled;
+            }
+
+            public void Dispose() => GUI.enabled = _previous;
         }
     }
 }

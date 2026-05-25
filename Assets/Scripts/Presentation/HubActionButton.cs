@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace MaratGame.Presentation
 {
     /// <summary>
-    /// Холл-hub: ● Действие «Осмотреться» → birthday_scene (MVP шаг 11).
+    /// Холл-hub: ● «Осмотреться» → birthday_scene → глава 2 (большое поздравление — вечер).
     /// </summary>
     public sealed class HubActionButton : MonoBehaviour
     {
@@ -17,7 +17,7 @@ namespace MaratGame.Presentation
         [SerializeField] CanvasGroup buttonGroup;
         [SerializeField] Button actionButton;
         [SerializeField] TextMeshProUGUI label;
-        [SerializeField] bool autoTriggerWhenReady = true;
+        [SerializeField] bool autoTriggerWhenReady;
 
         void Awake()
         {
@@ -28,9 +28,26 @@ namespace MaratGame.Presentation
                 actionButton.onClick.AddListener(OnActionClicked);
 
             if (label != null)
-                label.text = "●\nОсмотреться";
+                label.text = "Осмотреться";
 
+            ClampHubDotGraphicSize();
             SetVisible(false);
+        }
+
+        void ClampHubDotGraphicSize()
+        {
+            if (actionButton == null)
+                return;
+
+            var dot = actionButton.transform.Find("DotGraphic") as RectTransform;
+            if (dot == null)
+                return;
+
+            dot.sizeDelta = UiLayout.SizeHubDotButton;
+            dot.anchorMin = new Vector2(0f, 0.5f);
+            dot.anchorMax = new Vector2(0f, 0.5f);
+            dot.pivot = new Vector2(0f, 0.5f);
+            dot.anchoredPosition = Vector2.zero;
         }
 
         void OnEnable()
@@ -58,7 +75,7 @@ namespace MaratGame.Presentation
                 return;
 
             var onHub = node.id == NavigationBar.HubNodeId;
-            var ready = GameState.Instance.DecisionsCount >= BirthdayEndNodes.MinDecisionsForBirthday;
+            var ready = MorningBranchProgress.IsReadyForHubBirthdayInspect(GameState.Instance);
             var show = onHub && ready && !GameState.Instance.Flags.HasFlag(BirthdayEndFlags.BirthdaySeen);
             SetVisible(show);
 
@@ -79,6 +96,9 @@ namespace MaratGame.Presentation
 
         void OnActionClicked() => GoToBirthday();
 
+        /// <summary>Для <see cref="MaratGame.Agent.AgentPlayBridge"/> (MCP).</summary>
+        public void AgentTriggerInspect() => GoToBirthday();
+
         void GoToBirthday()
         {
             CancelInvoke(nameof(TriggerBirthday));
@@ -87,7 +107,7 @@ namespace MaratGame.Presentation
             if (state.Flags.HasFlag(BirthdayEndFlags.BirthdaySeen))
                 return;
 
-            if (state.DecisionsCount < BirthdayEndNodes.MinDecisionsForBirthday)
+            if (!MorningBranchProgress.IsReadyForHubBirthdayInspect(state))
                 return;
 
             state.Flags.SetFlag(BirthdayEndFlags.BirthdaySeen);

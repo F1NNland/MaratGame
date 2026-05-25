@@ -3,6 +3,7 @@ using MPUIKIT;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UI.ProceduralImage;
+using CanvasScaler = UnityEngine.UI.CanvasScaler;
 
 namespace MaratGame.Editor
 {
@@ -21,6 +22,65 @@ namespace MaratGame.Editor
             channels |= AdditionalCanvasShaderChannels.TexCoord2;
             channels |= AdditionalCanvasShaderChannels.TexCoord3;
             canvas.additionalShaderChannels = channels;
+
+            ConfigureCanvasScaler(canvas);
+            StretchCanvasRoot(canvas);
+        }
+
+        /// <summary>
+        /// Фото-фоны на отдельном Canvas без TexCoord1–3 (иначе Default UI Image не рисуется).
+        /// </summary>
+        public static Canvas EnsureBackgroundCanvas(int sortingOrder = 0)
+        {
+            var existing = GameObject.Find("BackgroundCanvas");
+            if (existing != null)
+            {
+                var existingCanvas = existing.GetComponent<Canvas>();
+                if (existingCanvas != null)
+                    existingCanvas.sortingOrder = sortingOrder;
+                return existingCanvas;
+            }
+
+            var canvasGo = new GameObject("BackgroundCanvas");
+            var canvas = canvasGo.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = sortingOrder;
+            canvasGo.AddComponent<CanvasScaler>();
+            canvasGo.AddComponent<GraphicRaycaster>();
+            ConfigureCanvasScaler(canvas);
+            StretchCanvasRoot(canvas);
+            return canvas;
+        }
+
+        public static void ConfigureCanvasScaler(Canvas canvas)
+        {
+            if (canvas == null)
+                return;
+
+            var scaler = canvas.GetComponent<CanvasScaler>();
+            if (scaler == null)
+                scaler = canvas.gameObject.AddComponent<CanvasScaler>();
+
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = UiLayout.ReferenceResolution;
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            scaler.matchWidthOrHeight = UiLayout.ScreenMatch;
+            scaler.scaleFactor = 1f;
+        }
+
+        static void StretchCanvasRoot(Canvas canvas)
+        {
+            var rect = canvas.GetComponent<RectTransform>();
+            if (rect == null)
+                return;
+
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = Vector2.zero;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
         }
 
         public static ProceduralImage AddRoundedPanel(GameObject host, Color color, float cornerRadius)
@@ -49,6 +109,13 @@ namespace MaratGame.Editor
             }
 
             image.SetAllDirty();
+            return image;
+        }
+
+        public static MPImage AddMessageBubbleGraphic(GameObject host, Color color, float cornerRadius)
+        {
+            var image = AddRoundedButtonGraphic(host, color, cornerRadius);
+            image.raycastTarget = false;
             return image;
         }
 
@@ -81,6 +148,21 @@ namespace MaratGame.Editor
         public static void ReplaceGraphicWithRoundedButton(GameObject buttonRoot)
         {
             AddRoundedButtonGraphic(buttonRoot, UiStyle.AccentButton, UiStyle.ButtonCornerRadius);
+        }
+
+        public static LayoutElement AddLayoutElement(GameObject host, Vector2 size)
+        {
+            var layout = host.GetComponent<LayoutElement>();
+            if (layout == null)
+                layout = host.AddComponent<LayoutElement>();
+
+            layout.minWidth = size.x;
+            layout.minHeight = size.y;
+            layout.preferredWidth = size.x;
+            layout.preferredHeight = size.y;
+            layout.flexibleWidth = 1f;
+            layout.flexibleHeight = 0f;
+            return layout;
         }
     }
 }

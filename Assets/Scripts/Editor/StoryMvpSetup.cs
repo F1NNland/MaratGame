@@ -23,6 +23,7 @@ namespace MaratGame.Editor
             hallIntro.id = "hall_intro";
             hallIntro.locationId = "hall";
             hallIntro.timeDisplay = "07:58";
+            hallIntro.dayBlock = DayBlock.Morning;
             hallIntro.chapterLabel = "Глава 1 — тест";
             hallIntro.speaker = "Марат";
             hallIntro.bodyText = "Холл банка. День рождения только начинается (тестовый узел).";
@@ -35,6 +36,13 @@ namespace MaratGame.Editor
                     targetNodeId = "hall_intro_2",
                     statChanges = new[] { new StatChangeEntry { stat = StatType.Respect, delta = 5 } },
                     flagsToSet = new[] { "hall_intro_seen" }
+                },
+                new StoryChoice
+                {
+                    label = "Только с пропуском",
+                    targetNodeId = "hall_intro_2",
+                    requiredFlags = new[] { "staff_pass" },
+                    unavailableReason = "Нужен пропуск сотрудника."
                 }
             };
 
@@ -42,12 +50,17 @@ namespace MaratGame.Editor
             hallIntro2.id = "hall_intro_2";
             hallIntro2.locationId = "hall";
             hallIntro2.timeDisplay = "07:59";
+            hallIntro2.dayBlock = DayBlock.BeforeMeeting;
             hallIntro2.chapterLabel = "Глава 1 — тест";
             hallIntro2.speaker = "Марат";
             hallIntro2.bodyText = "Второй тестовый узел. Выборов нет — сработает OnNodeComplete.";
+            hallIntro2.requiredFlags = new[] { "hall_intro_seen" };
+            hallIntro2.mediaSlot = MediaSlotType.Image;
+            hallIntro2.mediaPath = "Assets/Art/placeholder/hall_intro_2.png";
             hallIntro2.onEnterEffects = new System.Collections.Generic.List<StatChangeEntry>
             {
-                new StatChangeEntry { stat = StatType.Calm, delta = -3 }
+                new StatChangeEntry { stat = StatType.Calm, delta = -3 },
+                new StatChangeEntry { stat = StatType.Chaos, delta = 7 }
             };
             hallIntro2.choices = System.Array.Empty<StoryChoice>();
 
@@ -137,6 +150,29 @@ namespace MaratGame.Editor
             if (state.CurrentTime != "07:58" || state.CurrentLocationId != "hall")
                 Fail($"After hall_intro: time={state.CurrentTime}, loc={state.CurrentLocationId}");
 
+            var initialChoices = engine.GetChoiceAvailability();
+            if (initialChoices.Length != 2)
+                Fail($"Expected 2 choices, got {initialChoices.Length}");
+
+            if (initialChoices[1].IsAvailable)
+                Fail("Second choice should be unavailable without staff_pass.");
+
+            if (initialChoices[1].Reason != "Нужен пропуск сотрудника.")
+                Fail($"Unavailable reason mismatch: {initialChoices[1].Reason}");
+
+            var loadLockedDirectlyFailed = false;
+            try
+            {
+                engine.LoadNode("hall_intro_2");
+            }
+            catch (System.InvalidOperationException)
+            {
+                loadLockedDirectlyFailed = true;
+            }
+
+            if (!loadLockedDirectlyFailed)
+                Fail("Expected hall_intro_2 to be unavailable before flag hall_intro_seen.");
+
             engine.SelectChoice(0);
 
             if (state.Stats.Respect != 55)
@@ -153,6 +189,15 @@ namespace MaratGame.Editor
 
             if (state.Stats.Calm != 57)
                 Fail($"Calm after onEnter -3: {state.Stats.Calm}");
+
+            if (state.Stats.Chaos != 7)
+                Fail($"Chaos after onEnter +7: {state.Stats.Chaos}");
+
+            if (state.CurrentDayBlock != DayBlock.BeforeMeeting)
+                Fail($"Expected day block BeforeMeeting, got {state.CurrentDayBlock}");
+
+            if (lastNode.mediaSlot != MediaSlotType.Image || string.IsNullOrWhiteSpace(lastNode.mediaPath))
+                Fail("Expected mediaSlot image and non-empty mediaPath on hall_intro_2.");
 
             if (!nodeCompleteFired)
                 Fail("OnNodeComplete did not fire for hall_intro_2");

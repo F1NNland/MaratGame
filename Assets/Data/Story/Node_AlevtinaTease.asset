@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MaratGame.Data.StoryNodeData
   id: alevtina_tease
   locationId: cabinet
-  timeDisplay: 07:58
+  timeDisplay: 08:11
+  dayBlock: 0
   chapterLabel: "\u0413\u041B\u0410\u0412\u0410 1 \xB7 \u0423\u0422\u0420\u041E"
   bodyText: "\u2014 \u041D\u0443 \u0447\u0442\u043E, \u0438\u043C\u0435\u043D\u0438\u043D\u043D\u0438\u043A,
     \u043A\u043E\u0444\u0435 \u0443\u0436\u0435 \u043F\u0438\u043B \u0438\u043B\u0438
@@ -23,10 +24,27 @@ MonoBehaviour:
     \u0434\u0435\u043D\u044C \u0440\u043E\u0436\u0434\u0435\u043D\u0438\u044F \u2014
     \u043D\u0435\u0442."
   speaker: "\u0410\u043B\u0435\u0432\u0442\u0438\u043D\u0430"
+  uiMode: 0
+  isMiniStory: 0
+  miniStoryId: 
+  miniStoryRole: 0
+  miniStoryEntryNodeId: 
+  miniStoryContentNodeIds: []
+  miniStoryExitNodeId: 
   portraitCharacterId: alevtina
+  requiredFlags: []
+  requiredStats: []
+  mediaSlot: 0
+  mediaPath: 
   onEnterEffects: []
   choices:
   - label: "\u0412 \u0445\u043E\u043B\u043B"
     targetNodeId: hall_hub
-    statChanges: []
-    flagsToSet: []
+    statChanges:
+    - stat: 0
+      delta: 2
+    flagsToSet:
+    - met_alevtina_cabinet
+    requiredFlags: []
+    requiredStats: []
+    unavailableReason: 

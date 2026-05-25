@@ -74,6 +74,7 @@ namespace MaratGame.Editor
             canvasGo.AddComponent<CanvasScaler>();
             canvasGo.AddComponent<GraphicRaycaster>();
             UiKitFactory.EnsureCanvasSupportsProceduralImage(canvas);
+            // Scaler + stretch root configured in EnsureCanvasSupportsProceduralImage
 
             var menuRoot = new GameObject("MainMenuRoot");
             menuRoot.transform.SetParent(canvasGo.transform, false);
@@ -184,6 +185,7 @@ namespace MaratGame.Editor
 
             var systems = new GameObject("GameSystems");
             var runner = systems.AddComponent<StoryRunner>();
+            systems.AddComponent<UiInputBootstrap>();
             var bootstrap = systems.AddComponent<GameBootstrap>();
 
             var runnerSo = new SerializedObject(runner);
@@ -209,6 +211,7 @@ namespace MaratGame.Editor
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvasGo.AddComponent<CanvasScaler>();
             canvasGo.AddComponent<GraphicRaycaster>();
+            UiKitFactory.EnsureCanvasSupportsProceduralImage(canvas);
 
             SaveScene(scene, GamePath);
         }
