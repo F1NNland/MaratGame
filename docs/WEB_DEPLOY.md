@@ -25,8 +25,10 @@
 
 1. GitHub → репозиторий **MaratGame** → **Settings** → **Pages**
 2. **Build and deployment** → Source: **Deploy from a branch**
-3. **Branch:** `main` · папка **`/docs`**
+3. **Branch:** `main` · папка **`/docs`** (именно **/docs**, не **/ (root)**)
 4. Сохранить
+
+> Если выбран **/ (root)**, на [https://f1nnland.github.io/MaratGame/](https://f1nnland.github.io/MaratGame/) откроется README, а не Unity. Игра лежит в `docs/index.html` → временно […/MaratGame/docs/](https://f1nnland.github.io/MaratGame/docs/).
 
 Ветки `gh-pages` **не будет**, пока workflow её не создаст — это нормально. Билд кладётся в папку **`docs/`** на `main` (`index.html` игры рядом с `docs/mvp/`, `SPEC.md` и т.д.).
 
@@ -158,6 +160,7 @@ git push -f git@github.com:F1NNland/MaratGame.git main:gh-pages
 | 404 на GitHub Pages | Pages: **main** + **/docs**; дождаться 2–5 минут после зелёного workflow; репо должен быть публичным |
 | `touch .nojekyll: Permission denied` | Обнови workflow (`.nojekyll` в job Deploy) |
 | Deploy: `You deploy from main to main` | Исправлено: deploy коммитит в `docs/` напрямую, без peaceiris |
+| Открывается README, не игра | Pages: **`main` + `/docs`**, не корень `/`. Или играй с […/MaratGame/docs/](https://f1nnland.github.io/MaratGame/docs/) |
 | Pages = GitHub Actions + ошибка deploy | Pages: **`main`** + **`/docs`**, не GitHub Actions |
 | В списке веток только `main` | Ок — выбери **main** и папку **/docs** |
 | Кириллица / TMP | LiberationSans SDF в билде; проверить **Include Font Data** у TMP |

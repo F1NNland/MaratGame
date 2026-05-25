@@ -5,9 +5,11 @@ Unity 6 (URP 2D), PC и **WebGL** (браузер).
 
 ## Играть в браузере
 
-После настройки деплоя: **https://f1nnland.github.io/MaratGame/**
+**WebGL (после успешного CI):** [https://f1nnland.github.io/MaratGame/docs/](https://f1nnland.github.io/MaratGame/docs/)
 
-Если ссылка ещё не работает — см. [docs/WEB_DEPLOY.md](docs/WEB_DEPLOY.md).
+Если открывается этот README, а не игра — в **Settings → Pages** укажи ветку **`main`**, папку **`/docs`** (не `/`). Тогда игра будет на [https://f1nnland.github.io/MaratGame/](https://f1nnland.github.io/MaratGame/).
+
+Подробнее: [docs/WEB_DEPLOY.md](docs/WEB_DEPLOY.md).
 
 Эталон UX (HTML): [makhmetsafin.github.io/marat-game](https://makhmetsafin.github.io/marat-game/)
 
