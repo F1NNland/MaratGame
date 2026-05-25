@@ -152,7 +152,7 @@ git push -f git@github.com:F1NNland/MaratGame.git main:gh-pages
 
 | Проблема | Решение |
 |----------|---------|
-| CI: `com.local.unitymcp` not found | Workflow уже удаляет пакет; не добавляй обратно в CI |
+| CI: `com.local.unitymcp` not found | Не коммить MCP в `manifest.json`. Локально: `Packages/apply-local-manifest.ps1` |
 | CI: No UNITY_LICENSE | Добавить секреты (раздел A.2) |
 | Белый экран в браузере | F12 → Console; часто нехватка памяти WebGL → увеличить **Initial Memory Size** |
 | 404 на GitHub Pages | Pages: **main** + **/docs**; дождаться 2–5 минут после зелёного workflow; репо должен быть публичным |

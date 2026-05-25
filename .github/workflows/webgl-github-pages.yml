@@ -24,6 +24,19 @@ jobs:
         with:
           lfs: true
 
+      - name: Prepare manifest for CI
+        run: |
+          python3 <<'PY'
+          import json
+          from pathlib import Path
+          for name in ("manifest.json", "packages-lock.json"):
+              path = Path("Packages") / name
+              data = json.loads(path.read_text(encoding="utf-8"))
+              deps = data.get("dependencies", {})
+              deps.pop("com.local.unitymcp", None)
+              path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+          PY
+
       - name: Cache Unity Library
         uses: actions/cache@v4
         with:
