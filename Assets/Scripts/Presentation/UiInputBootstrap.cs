@@ -154,6 +154,7 @@ namespace MaratGame.Presentation
                 module = primary.gameObject.AddComponent<InputSystemUIInputModule>();
 
             module.enabled = true;
+            module.pointerBehavior = UIPointerBehavior.SingleUnifiedPointer;
 
             if (module.actionsAsset == null || module.leftClick == null)
                 module.AssignDefaultActions();

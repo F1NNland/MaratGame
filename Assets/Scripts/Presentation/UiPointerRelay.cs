@@ -7,7 +7,7 @@ using UnityEngine.UI;
 namespace MaratGame.Presentation
 {
     /// <summary>
-    /// Резервный путь клика: RaycastAll + ExecuteEvents, если InputSystemUIInputModule не шлёт pointer.
+    /// Резервный путь клика: RaycastAll + ExecuteEvents, если InputSystemUIInputModule не шлёт pointer (часто WebGL + touch).
     /// </summary>
     [DefaultExecutionOrder(1000)]
     public sealed class UiPointerRelay : MonoBehaviour
@@ -27,20 +27,39 @@ namespace MaratGame.Presentation
 
         void Update()
         {
-            var mouse = Mouse.current;
-            if (mouse == null)
-                return;
-
-            if (!mouse.leftButton.wasPressedThisFrame)
-                return;
-
             var eventSystem = EventSystem.current;
             if (eventSystem == null)
                 return;
 
+            if (TryRelayTouch(eventSystem))
+                return;
+
+            TryRelayMouse(eventSystem);
+        }
+
+        static bool TryRelayTouch(EventSystem eventSystem)
+        {
+            var touchscreen = Touchscreen.current;
+            if (touchscreen == null || !touchscreen.primaryTouch.press.wasPressedThisFrame)
+                return false;
+
+            return RelayClick(eventSystem, touchscreen.primaryTouch.position.ReadValue());
+        }
+
+        static bool TryRelayMouse(EventSystem eventSystem)
+        {
+            var mouse = Mouse.current;
+            if (mouse == null || !mouse.leftButton.wasPressedThisFrame)
+                return false;
+
+            return RelayClick(eventSystem, mouse.position.ReadValue());
+        }
+
+        static bool RelayClick(EventSystem eventSystem, Vector2 screenPosition)
+        {
             var pointerData = new PointerEventData(eventSystem)
             {
-                position = mouse.position.ReadValue(),
+                position = screenPosition,
                 button = PointerEventData.InputButton.Left
             };
 
@@ -58,8 +77,10 @@ namespace MaratGame.Presentation
                     continue;
 
                 ExecuteEvents.Execute(button.gameObject, pointerData, ExecuteEvents.pointerClickHandler);
-                return;
+                return true;
             }
+
+            return false;
         }
 
         static bool IsButtonReachable(Button button)
@@ -75,7 +96,7 @@ namespace MaratGame.Presentation
                 if (group == null)
                     continue;
 
-                if (!group.interactable || group.alpha < 0.01f)
+                if (!group.interactable || group.alpha < 0.01f || !group.blocksRaycasts)
                     return false;
             }
 

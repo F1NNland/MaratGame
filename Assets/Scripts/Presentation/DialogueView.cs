@@ -53,6 +53,7 @@ namespace MaratGame.Presentation
             if (_portraitFrameRect != null)
                 PortraitSlotChrome.Apply(_portraitFrameRect);
             StripTestPhotoFromPortraitFrame();
+            DisableDialogueRaycastHits();
         }
 
         void Start() => RefreshDialogueLayout();
@@ -110,6 +111,15 @@ namespace MaratGame.Presentation
 
         void OnDestroy() => OnDestroyCleanup();
 
+        void DisableDialogueRaycastHits()
+        {
+            if (panel == null)
+                return;
+
+            foreach (var graphic in panel.GetComponentsInChildren<Graphic>(true))
+                graphic.raycastTarget = false;
+        }
+
         void RefreshDialogueLayout()
         {
             if (canvasGroup != null)
@@ -118,6 +128,7 @@ namespace MaratGame.Presentation
             if (panel != null)
                 panel.gameObject.SetActive(_mode != StoryUiMode.PhoneInbox);
 
+            DisableDialogueRaycastHits();
             RefreshFrameLayout();
             RefreshPortraitVisibility();
             RefreshPortraitFrameStyle();

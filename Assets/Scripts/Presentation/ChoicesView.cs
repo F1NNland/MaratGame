@@ -158,6 +158,10 @@ namespace MaratGame.Presentation
 
                 cg.interactable = true;
                 cg.blocksRaycasts = true;
+
+                var graphic = button.targetGraphic;
+                if (graphic != null)
+                    graphic.raycastTarget = true;
             }
         }
 
@@ -195,6 +199,8 @@ namespace MaratGame.Presentation
         {
             if (label == null)
                 return;
+
+            label.raycastTarget = false;
 
             var isGrid = mode is ChoiceLayoutMode.Grid or ChoiceLayoutMode.TwoRowsCentered;
             label.textWrappingMode = TextWrappingModes.Normal;
