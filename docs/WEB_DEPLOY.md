@@ -164,6 +164,9 @@ git push -f git@github.com:F1NNland/MaratGame.git main:gh-pages
 | Pages = GitHub Actions + ошибка deploy | Pages: **`main`** + **`/docs`**, не GitHub Actions |
 | В списке веток только `main` | Ок — выбери **main** и папку **/docs** |
 | Кириллица / TMP | LiberationSans SDF в билде; проверить **Include Font Data** у TMP |
+| На телефоне нет кнопки полного экрана | Шаблон `Assets/WebGLTemplates/MaratGame`: плавающая кнопка справа снизу; на iOS Safari нативный Fullscreen API ограничен — включается запасной «псевдо-полный экран» |
+
+**Полный экран на мобильных:** Android Chrome обычно поддерживает нативный fullscreen; iOS Safari частично — кнопка всё равно разворачивает игру на весь экран (CSS + `viewport-fit=cover`). Для максимального эффекта на iPhone: «Поделиться → На экран Домой».
 
 ---
 
