@@ -84,16 +84,20 @@ jobs:
           name: WebGL
           path: build/WebGL
 
-      - name: Prepare site root
-        run: touch build/WebGL/.nojekyll
+      # peaceiris нельзя main→main; копируем билд в docs/ и пушим сами (keep_files)
+      - name: Copy WebGL into docs/
+        run: |
+          rsync -av build/WebGL/ docs/
+          touch docs/.nojekyll
 
-      # Билд в docs/ на main — в Pages выбираешь branch main, folder /docs
-      - name: Publish WebGL into docs/
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: main
-          publish_dir: ./build/WebGL
-          destination_dir: docs
-          keep_files: true
-          commit_message: "Deploy WebGL build to docs/ for GitHub Pages"
+      - name: Commit and push docs/
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/
+          if git diff --staged --quiet; then
+            echo "No WebGL changes to deploy."
+          else
+            git commit -m "Deploy WebGL build to docs/ for GitHub Pages"
+            git push
+          fi

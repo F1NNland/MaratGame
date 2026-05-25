@@ -157,7 +157,7 @@ git push -f git@github.com:F1NNland/MaratGame.git main:gh-pages
 | Белый экран в браузере | F12 → Console; часто нехватка памяти WebGL → увеличить **Initial Memory Size** |
 | 404 на GitHub Pages | Pages: **main** + **/docs**; дождаться 2–5 минут после зелёного workflow; репо должен быть публичным |
 | `touch .nojekyll: Permission denied` | Обнови workflow (`.nojekyll` в job Deploy) |
-| `Multiple artifacts named "github-pages"` | Не жми **Re-run** только Deploy; push новый workflow (peaceiris → `gh-pages`) |
+| Deploy: `You deploy from main to main` | Исправлено: deploy коммитит в `docs/` напрямую, без peaceiris |
 | Pages = GitHub Actions + ошибка deploy | Pages: **`main`** + **`/docs`**, не GitHub Actions |
 | В списке веток только `main` | Ок — выбери **main** и папку **/docs** |
 | Кириллица / TMP | LiberationSans SDF в билде; проверить **Include Font Data** у TMP |
