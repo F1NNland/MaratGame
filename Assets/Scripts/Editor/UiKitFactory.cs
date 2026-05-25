@@ -64,7 +64,9 @@ namespace MaratGame.Editor
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = UiLayout.ReferenceResolution;
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            scaler.matchWidthOrHeight = UiLayout.ScreenMatch;
+            scaler.matchWidthOrHeight = UiLayout.ComputeScreenMatch(
+                UiLayout.RefWidth,
+                UiLayout.RefHeight);
             scaler.scaleFactor = 1f;
         }
 

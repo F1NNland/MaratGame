@@ -207,7 +207,7 @@ namespace MaratGame.Presentation
                 dialogue?.SetContent(node.speaker, node.bodyText);
 
             dialogue?.ApplyUiMode(uiMode);
-            dialogue?.SetPortrait(ResolvePortrait(node.portraitCharacterId));
+            dialogue?.SetPortrait(ResolvePortrait(CharacterPortraitResolver.ResolveCharacterId(node)));
             ApplyMedia(node);
             UpdateBackground(state.CurrentLocationId);
         }
@@ -695,7 +695,10 @@ namespace MaratGame.Presentation
 
         void PopulateMissingCharacterPortraitsFromPhotos()
         {
-            foreach (var characterId in new[] { CharacterIds.Alevtina, CharacterIds.Kozlikhin, CharacterIds.Nozdrikov })
+            foreach (var characterId in new[]
+                     {
+                         CharacterIds.Marat, CharacterIds.Alevtina, CharacterIds.Kozlikhin, CharacterIds.Nozdrikov
+                     })
             {
                 if (ResolvePortrait(characterId) != null)
                     continue;

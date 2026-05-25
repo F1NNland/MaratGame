@@ -27,6 +27,7 @@ namespace MaratGame.Data
 
     public static class CharacterIds
     {
+        public const string Marat = "marat";
         public const string Alevtina = "alevtina";
         public const string Kozlikhin = "kozlikhin";
         public const string Nozdrikov = "nozdrikov";

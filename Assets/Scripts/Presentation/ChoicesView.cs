@@ -33,6 +33,8 @@ namespace MaratGame.Presentation
             ApplyBottomAnchoredContainer();
         }
 
+        public void RefreshLayoutForViewport() => ApplyBottomAnchoredContainer();
+
         public void ClearChoices()
         {
             foreach (var button in _spawned)
@@ -274,8 +276,8 @@ namespace MaratGame.Presentation
                 ? UiLayout.ChoicesAreaMaxY
                 : UiLayout.ChoicesAreaMaxYInsideChrome;
 
-            container.anchorMin = new Vector2(0.04f, UiLayout.ChoicesAreaMinY);
-            container.anchorMax = new Vector2(0.96f, maxY);
+            container.anchorMin = new Vector2(UiLayout.ContentMinX, UiLayout.ChoicesAreaMinY);
+            container.anchorMax = new Vector2(UiLayout.ContentMaxX, maxY);
             container.pivot = new Vector2(0.5f, 0f);
             container.anchoredPosition = Vector2.zero;
             container.sizeDelta = Vector2.zero;

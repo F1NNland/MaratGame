@@ -26,7 +26,146 @@ namespace MaratGame.Presentation
 
         public const float ScreenMatch = 0.5f;
 
+        /// <summary>Эталонный aspect (Figma 2001×981).</summary>
+        public static float RefAspect => RefWidth / RefHeight;
 
+        /// <summary>iPhone 14 landscape (~2532×1170) — верхняя граница «широкого» экрана для подстройки UI.</summary>
+        public const float MobileLandscapeAspect = 2532f / 1170f;
+
+        const float ContentMarginX = 0.04f;
+        const float ContentMarginMaxX = 0.96f;
+        const float WideAspectExtraMarginX = 0.014f;
+        const float WideAspectLiftDialogueY = 0.01f;
+        const float WideAspectLiftChoicesBottomY = 0.006f;
+
+        static ViewportInsets _viewport = ViewportInsets.Default;
+
+        public readonly struct ViewportInsets
+        {
+            public readonly float ContentMinX;
+            public readonly float ContentMaxX;
+            public readonly float DialogueMinY;
+            public readonly float ChoicesMinY;
+            public readonly float ChoicesMaxY;
+            public readonly float ChoicesMaxYInsideChrome;
+            public readonly float ScreenMatch;
+
+            public static ViewportInsets Default => new(
+                ContentMarginX,
+                ContentMarginMaxX,
+                BottomChromeAnchorMaxY + 0.012f,
+                ChoicesAreaPaddingBottom,
+                BottomChromeAnchorMaxY - ChoicesAreaPaddingTop,
+                BottomChromeAnchorMaxY - 0.006f,
+                UiLayout.ScreenMatch);
+
+            public ViewportInsets(
+                float contentMinX,
+                float contentMaxX,
+                float dialogueMinY,
+                float choicesMinY,
+                float choicesMaxY,
+                float choicesMaxYInsideChrome,
+                float screenMatch)
+            {
+                ContentMinX = contentMinX;
+                ContentMaxX = contentMaxX;
+                DialogueMinY = dialogueMinY;
+                ChoicesMinY = choicesMinY;
+                ChoicesMaxY = choicesMaxY;
+                ChoicesMaxYInsideChrome = choicesMaxYInsideChrome;
+                ScreenMatch = screenMatch;
+            }
+        }
+
+        public static ViewportInsets CurrentViewport => _viewport;
+
+        public static void RefreshViewport(int screenWidth, int screenHeight)
+        {
+            _viewport = ComputeViewport(screenWidth, screenHeight);
+        }
+
+        public static float ComputeScreenMatch(float screenWidth, float screenHeight)
+        {
+            if (screenWidth <= 0f || screenHeight <= 0f)
+                return ScreenMatch;
+
+            var aspect = screenWidth / screenHeight;
+            if (aspect <= RefAspect)
+                return ScreenMatch;
+
+            var t = Mathf.InverseLerp(RefAspect, MobileLandscapeAspect, aspect);
+            return Mathf.Lerp(ScreenMatch, 1f, t);
+        }
+
+        public static ViewportInsets ComputeViewport(int screenWidth, int screenHeight)
+        {
+            if (screenWidth <= 0 || screenHeight <= 0)
+                return ViewportInsets.Default;
+
+            var aspect = (float)screenWidth / screenHeight;
+            var extraX = aspect > RefAspect
+                ? Mathf.Lerp(0f, WideAspectExtraMarginX, Mathf.InverseLerp(RefAspect, MobileLandscapeAspect, aspect))
+                : 0f;
+
+            var liftY = aspect > RefAspect
+                ? Mathf.Lerp(0f, WideAspectLiftDialogueY, Mathf.InverseLerp(RefAspect, MobileLandscapeAspect, aspect))
+                : 0f;
+
+            var choicesLift = aspect > RefAspect
+                ? Mathf.Lerp(0f, WideAspectLiftChoicesBottomY, Mathf.InverseLerp(RefAspect, MobileLandscapeAspect, aspect))
+                : 0f;
+
+            var dialogueMinY = BottomChromeAnchorMaxY + 0.012f + liftY;
+            var choicesMinY = ChoicesAreaPaddingBottom + choicesLift;
+
+            return new ViewportInsets(
+                ContentMarginX + extraX,
+                ContentMarginMaxX - extraX,
+                dialogueMinY,
+                choicesMinY,
+                BottomChromeAnchorMaxY - ChoicesAreaPaddingTop + choicesLift,
+                BottomChromeAnchorMaxY - 0.006f + choicesLift,
+                ComputeScreenMatch(screenWidth, screenHeight));
+        }
+
+        public static float ContentMinX => _viewport.ContentMinX;
+
+        public static float ContentMaxX => _viewport.ContentMaxX;
+
+        public static float DialogueAreaMinY => _viewport.DialogueMinY;
+
+        public static float ChoicesAreaMinY => _viewport.ChoicesMinY;
+
+        public static float ChoicesAreaMaxY => _viewport.ChoicesMaxY;
+
+        public static float ChoicesAreaMaxYInsideChrome => _viewport.ChoicesMaxYInsideChrome;
+
+        public static float CurrentScreenMatch => _viewport.ScreenMatch;
+
+        public static float ChoicesAreaWidth => (ContentMaxX - ContentMinX) * RefWidth;
+
+        public static float DialogueAreaMinX => ContentMinX;
+
+        public static float DialogueAreaMaxX =>
+            DialogueAreaMinX + (SizeDialoguePortrait.x + SizeDialogueTextPanel.x) / RefWidth;
+
+        public static float DialogueMonologueAreaMinX
+        {
+            get
+            {
+                var band = ContentMaxX - ContentMinX;
+                var panel = SizeDialogueTextPanel.x / RefWidth;
+                return ContentMinX + Mathf.Max(0f, (band - panel) * 0.5f);
+            }
+        }
+
+        public static float DialogueMonologueAreaMaxX =>
+            DialogueMonologueAreaMinX + SizeDialogueTextPanel.x / RefWidth;
+
+        public static float DialogueAreaMaxY => DialogueAreaMinY + SizeDialogueTextPanel.y / RefHeight;
+
+        public static float NavBarMinX => ContentMinX;
 
         public const float TopChromeHeight = 108f;
 
@@ -114,9 +253,6 @@ namespace MaratGame.Presentation
         public const float ChoiceGridPaddingH = 12f;
         public const float ChoiceGridPaddingV = 10f;
 
-        /// <summary>Ширина полосы выбора (доля Canvas по якорям контейнера).</summary>
-        public static float ChoicesAreaWidth => (0.96f - 0.04f) * RefWidth;
-
         public static readonly Vector2 SizeNavButton = new(144f, 144f);
 
         public static readonly Vector2 SizeHubDotButton = new(144f, 144f);
@@ -197,32 +333,10 @@ namespace MaratGame.Presentation
             return new Vector2(content.x + pad * 2f, content.y + pad * 2f);
         }
 
-        public const float DialogueAreaMinX = 0.04f;
-
-        public static float DialogueAreaMaxX =>
-            DialogueAreaMinX + (SizeDialoguePortrait.x + SizeDialogueTextPanel.x) / RefWidth;
-
-        /// <summary>Монолог: одна текстовая панель по центру снизу (без колонки портрета).</summary>
-        public static float DialogueMonologueAreaMinX =>
-            (RefWidth - SizeDialogueTextPanel.x) * 0.5f / RefWidth;
-
-        public static float DialogueMonologueAreaMaxX =>
-            DialogueMonologueAreaMinX + SizeDialogueTextPanel.x / RefWidth;
-
         /// <summary>Нижняя полоса UI: кнопки выбора внутри BottomChrome (как в макете).</summary>
         public const float ChoicesAreaPaddingBottom = 0.028f;
 
         public const float ChoicesAreaPaddingTop = 0.018f;
-
-        public static float ChoicesAreaMinY => ChoicesAreaPaddingBottom;
-
-        /// <summary>Верхняя граница ряда кнопок (внутри нижней полосы).</summary>
-        public static float ChoicesAreaMaxY =>
-            BottomChromeAnchorMaxY - ChoicesAreaPaddingTop;
-
-        /// <summary>Верхняя граница для 2+ рядов кнопок — строго внутри BottomChrome.</summary>
-        public static float ChoicesAreaMaxYInsideChrome =>
-            BottomChromeAnchorMaxY - 0.006f;
 
         /// <summary>Высота одного ряда кнопок, чтобы N рядов влезли в нижнюю подложку.</summary>
         public static float ComputeChoiceRowHeight(int rowCount)
@@ -232,12 +346,6 @@ namespace MaratGame.Presentation
             var inner = bandPx - ChoiceGridPaddingV * 2f - ChoiceGridSpacingY * (rows - 1);
             return Mathf.Clamp(inner / rows, 56f, SizeChoiceButtonGrid.y);
         }
-
-        public static float DialogueAreaMinY => BottomChromeAnchorMaxY + 0.012f;
-
-        public static float DialogueAreaMaxY => DialogueAreaMinY + SizeDialogueTextPanel.y / RefHeight;
-
-        public const float NavBarMinX = 0.04f;
 
         public const float NavBarMaxX = 0.40f;
 

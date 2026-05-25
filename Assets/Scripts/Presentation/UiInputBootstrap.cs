@@ -8,6 +8,7 @@ namespace MaratGame.Presentation
 {
     /// <summary>
     /// Гарантирует рабочий UI-клик: EventSystem + Input System UI + резервный <see cref="UiPointerRelay"/>.
+    /// Подгоняет Canvas под safe area и широкий landscape (iPhone 14 ~2532×1170).
     /// </summary>
     [DefaultExecutionOrder(-1000)]
     public sealed class UiInputBootstrap : MonoBehaviour
@@ -24,6 +25,99 @@ namespace MaratGame.Presentation
             EnsureButtonRaycastTargets();
             DisableBackgroundRaycastBlockers();
             RefreshCanvasScalers();
+            ApplyViewportFitAll();
+            EnsureViewportDriver();
+        }
+
+        public static void ApplyViewportFitAll()
+        {
+            UiLayout.RefreshViewport(Screen.width, Screen.height);
+
+            var uiCanvas = GameObject.Find("Canvas")?.GetComponent<Canvas>();
+            if (uiCanvas != null)
+                ApplyViewportToCanvas(uiCanvas, applySafeAreaInsets: true);
+
+            var backgroundCanvas = GameObject.Find("BackgroundCanvas")?.GetComponent<Canvas>();
+            if (backgroundCanvas != null)
+                ApplyViewportToCanvas(backgroundCanvas, applySafeAreaInsets: false);
+
+            RefreshLayoutViews();
+        }
+
+        public static void ApplyViewportToCanvas(Canvas canvas, bool applySafeAreaInsets)
+        {
+            if (canvas == null)
+                return;
+
+            var scaler = canvas.GetComponent<CanvasScaler>();
+            if (scaler != null)
+                scaler.matchWidthOrHeight = UiLayout.CurrentScreenMatch;
+
+            var root = canvas.transform as RectTransform;
+            if (root == null)
+                return;
+
+            if (applySafeAreaInsets)
+                ApplySafeAreaToRoot(root);
+            else
+                ResetRootInsets(root);
+        }
+
+        static void ApplySafeAreaToRoot(RectTransform root)
+        {
+            var safe = Screen.safeArea;
+            var screen = new Vector2(Screen.width, Screen.height);
+            if (screen.x <= 0f || screen.y <= 0f)
+                return;
+
+            root.anchorMin = Vector2.zero;
+            root.anchorMax = Vector2.one;
+            root.pivot = new Vector2(0.5f, 0.5f);
+            root.offsetMin = new Vector2(safe.xMin, safe.yMin);
+            root.offsetMax = new Vector2(safe.xMax - screen.x, safe.yMax - screen.y);
+        }
+
+        static void ResetRootInsets(RectTransform root)
+        {
+            root.anchorMin = Vector2.zero;
+            root.anchorMax = Vector2.one;
+            root.offsetMin = Vector2.zero;
+            root.offsetMax = Vector2.zero;
+        }
+
+        static void RefreshLayoutViews()
+        {
+            foreach (var dialogue in Object.FindObjectsByType<DialogueView>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (dialogue != null && dialogue.isActiveAndEnabled)
+                    dialogue.RefreshLayoutForViewport();
+            }
+
+            foreach (var choices in Object.FindObjectsByType<ChoicesView>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (choices != null && choices.isActiveAndEnabled)
+                    choices.RefreshLayoutForViewport();
+            }
+        }
+
+        static void EnsureViewportDriver()
+        {
+            var systems = Object.FindObjectsByType<EventSystem>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            EventSystem host = null;
+            foreach (var system in systems)
+            {
+                if (system != null && system.gameObject.activeInHierarchy)
+                {
+                    host = system;
+                    break;
+                }
+            }
+
+            if (host == null)
+                return;
+
+            if (host.GetComponent<UiViewportDriver>() == null)
+                host.gameObject.AddComponent<UiViewportDriver>();
         }
 
         static void EnsureEventSystem()
@@ -155,6 +249,26 @@ namespace MaratGame.Presentation
                 scaler.enabled = false;
                 root.localScale = Vector3.one;
                 scaler.enabled = true;
+            }
+        }
+
+        sealed class UiViewportDriver : MonoBehaviour
+        {
+            Vector2Int _lastScreenSize;
+            Rect _lastSafeArea;
+
+            void OnEnable() => UiInputBootstrap.ApplyViewportFitAll();
+
+            void Update()
+            {
+                if (Screen.width == _lastScreenSize.x
+                    && Screen.height == _lastScreenSize.y
+                    && Screen.safeArea == _lastSafeArea)
+                    return;
+
+                _lastScreenSize = new Vector2Int(Screen.width, Screen.height);
+                _lastSafeArea = Screen.safeArea;
+                UiInputBootstrap.ApplyViewportFitAll();
             }
         }
     }

@@ -205,6 +205,8 @@ namespace MaratGame.Editor
             canvas.offsetMin = Vector2.zero;
             canvas.offsetMax = Vector2.zero;
 
+            UiInputBootstrap.ApplyViewportFitAll();
+
             var dialogueGroup = FindComponent<CanvasGroup>("Canvas/DialoguePanel");
             if (dialogueGroup != null)
             {
@@ -680,8 +682,8 @@ namespace MaratGame.Editor
         {
             StretchAnchors(
                 "Canvas/ChoicesContainer",
-                new Vector2(0.04f, UiLayout.ChoicesAreaMinY),
-                new Vector2(0.96f, UiLayout.ChoicesAreaMaxY));
+                new Vector2(UiLayout.ContentMinX, UiLayout.ChoicesAreaMinY),
+                new Vector2(UiLayout.ContentMaxX, UiLayout.ChoicesAreaMaxY));
             EnsureChoicesVerticalLayout();
             TuneChoicePrefab();
         }

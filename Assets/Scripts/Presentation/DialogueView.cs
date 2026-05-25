@@ -29,7 +29,9 @@ namespace MaratGame.Presentation
         public Image PortraitImage => portraitImage;
 
         bool ShowPortraitColumn =>
-            _mode == StoryUiMode.Dialogue && !string.IsNullOrWhiteSpace(speakerText?.text);
+            _mode == StoryUiMode.Dialogue &&
+            !string.IsNullOrWhiteSpace(speakerText?.text) &&
+            _currentPortrait != null;
 
         void Awake()
         {
@@ -54,6 +56,8 @@ namespace MaratGame.Presentation
         }
 
         void Start() => RefreshDialogueLayout();
+
+        public void RefreshLayoutForViewport() => RefreshDialogueLayout();
 
         public void SetContent(string speaker, string body)
         {
@@ -89,7 +93,7 @@ namespace MaratGame.Presentation
         public void SetPortrait(Sprite sprite)
         {
             _currentPortrait = sprite;
-            RefreshPortraitVisibility();
+            RefreshDialogueLayout();
         }
 
         public void CancelPresentation()

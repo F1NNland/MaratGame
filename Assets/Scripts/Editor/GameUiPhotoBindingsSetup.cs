@@ -59,10 +59,10 @@ namespace MaratGame.Editor
 
         static void RefreshCharacterPortraits(GameUIController controller, StringBuilder report)
         {
+            BindPortrait(controller, report, CharacterIds.Marat, CharacterPhotoPaths.Marat);
             BindPortrait(controller, report, CharacterIds.Alevtina, CharacterPhotoPaths.Alevtina);
             BindPortrait(controller, report, CharacterIds.Kozlikhin, CharacterPhotoPaths.Kozlikhin);
             BindPortrait(controller, report, CharacterIds.Nozdrikov, CharacterPhotoPaths.Nozdrikov);
-            BindPortrait(controller, report, "marat", CharacterPhotoPaths.Marat, optional: true);
         }
 
         static void BindLocation(
